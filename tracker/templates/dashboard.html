@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-wrapper">
+
+  <!-- WELCOME HEADER -->
+  <div class="dashboard-header">
+    <div>
+      <h1 class="dashboard-title">WELCOME BACK, <span>{{ user.username|upper }}!</span></h1>
+      <p class="dashboard-sub">{{ today }} — Let's crush it today 💪</p>
+    </div>
+    <div class="dashboard-actions">
+      <a href="#" class="btn-primary-custom">
+        <i class="bi bi-plus-circle"></i> Log Workout
+      </a>
+      <a href="#" class="btn-ghost">
+        <i class="bi bi-egg-fried"></i> Log Meal
+      </a>
+    </div>
+  </div>
+
+  <!-- STATS CARDS -->
+  <div class="stats-grid">
+
+    <div class="stat-card">
+      <div class="stat-card-icon"><i class="bi bi-fire"></i></div>
+      <div class="stat-card-info">
+        <div class="stat-card-num">{{ total_calories }}</div>
+        <div class="stat-card-label">Calories Today</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-card-icon"><i class="bi bi-lightning-charge"></i></div>
+      <div class="stat-card-info">
+        <div class="stat-card-num">{{ total_protein }}g</div>
+        <div class="stat-card-label">Protein Today</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-card-icon"><i class="bi bi-bar-chart"></i></div>
+      <div class="stat-card-info">
+        <div class="stat-card-num">{{ total_carbs }}g</div>
+        <div class="stat-card-label">Carbs Today</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-card-icon"><i class="bi bi-droplet"></i></div>
+      <div class="stat-card-info">
+        <div class="stat-card-num">{{ total_fat }}g</div>
+        <div class="stat-card-label">Fat Today</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="dashboard-grid">
+
+    <!-- RECENT WORKOUTS -->
+    <div class="dashboard-card">
+      <div class="dashboard-card-header">
+        <h3 class="dashboard-card-title">RECENT WORKOUTS</h3>
+        <a href="#" class="dashboard-card-link">
+          + Add New
+        </a>
+      </div>
+
+      {% if recent_workouts %}
+        {% for workout in recent_workouts %}
+          <div class="workout-item">
+            <div class="workout-item-left">
+              <div class="workout-item-icon">
+                <i class="bi bi-dumbbell"></i>
+              </div>
+              <div>
+                <div class="workout-item-name">{{ workout.title }}</div>
+                <div class="workout-item-detail">
+                  {{ workout.get_total_exercises }} exercises ·
+                  {{ workout.get_total_volume }} kg total volume
+                </div>
+              </div>
+            </div>
+            <div class="workout-item-date">{{ workout.date }}</div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <i class="bi bi-journal-x"></i>
+          <p>No workouts yet. Log your first workout!</p>
+          <a href="#" class="btn-primary-custom mt-2">
+            + Log Workout
+          </a>
+        </div>
+      {% endif %}
+
+    </div>
+
+    <!-- TODAY'S NUTRITION -->
+    <div class="dashboard-card">
+      <div class="dashboard-card-header">
+        <h3 class="dashboard-card-title">TODAY'S NUTRITION</h3>
+        <a href="#" class="dashboard-card-link">
+          + Add Meal
+        </a>
+      </div>
+
+      {% if todays_nutrition %}
+        {% for log in todays_nutrition %}
+          <div class="nutrition-item">
+            <div class="nutrition-item-left">
+              <div class="nutrition-item-icon">
+                <i class="bi bi-egg-fried"></i>
+              </div>
+              <div>
+                <div class="nutrition-item-name">{{ log.meal_name }}</div>
+                <div class="nutrition-item-detail">
+                  P: {{ log.protein }}g ·
+                  C: {{ log.carbs }}g ·
+                  F: {{ log.fat }}g
+                </div>
+              </div>
+            </div>
+            <div class="nutrition-item-calories">{{ log.calories }} kcal</div>
+          </div>
+        {% endfor %}
+
+        <!-- Daily Total -->
+        <div class="nutrition-total">
+          <span>Daily Total</span>
+          <span style="color:var(--fire);font-weight:600;">
+            {{ total_calories }} kcal
+          </span>
+        </div>
+
+      {% else %}
+        <div class="empty-state">
+          <i class="bi bi-egg"></i>
+          <p>No meals logged today. Track your nutrition!</p>
+          <a href="#" class="btn-primary-custom mt-2">
+            + Log Meal
+          </a>
+        </div>
+      {% endif %}
+
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}
