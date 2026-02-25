@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Log Workout{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-wrapper">
+
+  <!-- HEADER -->
+  <div class="dashboard-header">
+    <div>
+      <h1 class="dashboard-title">LOG <span>WORKOUT</span></h1>
+      <p class="dashboard-sub">Record your session — every rep counts 🔥</p>
+    </div>
+    <a href="{% url 'dashboard' %}" class="btn-ghost">
+      <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+  </div>
+
+  <!-- ERROR MESSAGE -->
+  {% if error %}
+    <div class="gymiq-alert mb-4">
+      <i class="bi bi-exclamation-circle me-2"></i> {{ error }}
+    </div>
+  {% endif %}
+
+  <form method="POST" id="workout-form">
+    {% csrf_token %}
+
+    <!-- WORKOUT DETAILS CARD -->
+    <div class="dashboard-card mb-4">
+      <div class="dashboard-card-header">
+        <h3 class="dashboard-card-title">WORKOUT DETAILS</h3>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="gymiq-label">Workout Title *</label>
+          <input
+            type="text"
+            name="title"
+            class="gymiq-input"
+            placeholder="e.g. Chest Day, Push A, Leg Day..."
+            required
+          >
+        </div>
+        <div class="form-group">
+          <label class="gymiq-label">Date *</label>
+          <input
+            type="date"
+            name="date"
+            class="gymiq-input"
+            value="{{ today }}"
+            required
+          >
+        </div>
+      </div>
+
+      <div class="form-group mt-3">
+        <label class="gymiq-label">Session Notes (optional)</label>
+        <textarea
+          name="notes"
+          class="gymiq-input"
+          placeholder="How did the session feel? Any notes..."
+          rows="2"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- EXERCISES CONTAINER — exercises are added here by JavaScript -->
+    <div id="exercises-container"></div>
+
+    <!-- ADD EXERCISE BUTTON -->
+    <button type="button" id="add-exercise-btn" class="btn-ghost w-100 mb-4">
+      <i class="bi bi-plus-circle"></i> Add Exercise
+    </button>
+
+    <!-- SAVE BUTTON -->
+    <div class="text-center mb-5">
+      <button type="submit" class="btn-primary-custom" style="font-size:1rem; padding:1rem 3rem;">
+        <i class="bi bi-check-circle me-2"></i> Save Workout
+      </button>
+    </div>
+
+  </form>
+</div>
+
+
+<!-- ============================================================
+     JAVASCRIPT — handles adding/removing exercises and sets
+     ============================================================ -->
+<script>
+  // This counts how many exercise blocks have been created total
+  // We never decrease this — it ensures unique field names even
+  // if the user deletes an exercise and adds a new one
+  let exerciseCounter = 0;
+
+  // ─── ADD EXERCISE ───────────────────────────────────────────
+  function addExercise() {
+    const container = document.getElementById('exercises-container');
+    const exIndex = exerciseCounter;
+    exerciseCounter++;
+
+    // Build the exercise card HTML
+    const card = document.createElement('div');
+    card.className = 'dashboard-card mb-3 exercise-block';
+    card.dataset.exerciseIndex = exIndex;
+
+    card.innerHTML = `
+      <div class="dashboard-card-header">
+        <h3 class="dashboard-card-title">
+          EXERCISE <span class="ex-num"></span>
+        </h3>
+        <button
+          type="button"
+          class="remove-exercise-btn"
+          title="Remove exercise"
+        >
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+
+      <div class="form-grid-2 mb-3">
+        <div class="form-group">
+          <label class="gymiq-label">Exercise Name *</label>
+          <input
+            type="text"
+            name="exercise_${exIndex}_name"
+            class="gymiq-input"
+            placeholder="e.g. Bench Press, Squat..."
+            required
+          >
+        </div>
+        <div class="form-group">
+          <label class="gymiq-label">Notes (optional)</label>
+          <input
+            type="text"
+            name="exercise_${exIndex}_notes"
+            class="gymiq-input"
+            placeholder="e.g. Pause reps, close grip..."
+          >
+        </div>
+      </div>
+
+      <div class="sets-table-header">
+        <span>SET</span>
+        <span>REPS</span>
+        <span>WEIGHT (kg)</span>
+        <span></span>
+      </div>
+
+      <div class="sets-container"></div>
+
+      <button type="button" class="add-set-btn btn-ghost mt-2">
+        <i class="bi bi-plus"></i> Add Set
+      </button>
+    `;
+
+    container.appendChild(card);
+
+    // Wire up the remove exercise button
+    card.querySelector('.remove-exercise-btn').addEventListener('click', function () {
+      card.remove();
+      renumberExercises();
+    });
+
+    // Wire up the add set button
+    card.querySelector('.add-set-btn').addEventListener('click', function () {
+      const setsContainer = card.querySelector('.sets-container');
+      addSet(setsContainer, exIndex);
+    });
+
+    // Update all exercise numbers (1, 2, 3...)
+    renumberExercises();
+
+    // Auto-add one set so the user isn't staring at an empty card
+    const setsContainer = card.querySelector('.sets-container');
+    addSet(setsContainer, exIndex);
+  }
+
+
+  // ─── ADD SET ────────────────────────────────────────────────
+  function addSet(setsContainer, exIndex) {
+    const setIndex = setsContainer.children.length;
+
+    const row = document.createElement('div');
+    row.className = 'set-row';
+
+    row.innerHTML = `
+      <span class="set-num-label">${setIndex + 1}</span>
+      <input
+        type="number"
+        name="exercise_${exIndex}_set_${setIndex}_reps"
+        class="gymiq-input set-input"
+        placeholder="Reps"
+        min="1"
+        required
+      >
+      <input
+        type="number"
+        name="exercise_${exIndex}_set_${setIndex}_weight"
+        class="gymiq-input set-input"
+        placeholder="kg"
+        step="0.5"
+        min="0"
+        required
+      >
+      <button type="button" class="remove-set-btn" title="Remove set">
+        <i class="bi bi-x-circle"></i>
+      </button>
+    `;
+
+    setsContainer.appendChild(row);
+
+    // Wire up the remove set button
+    row.querySelector('.remove-set-btn').addEventListener('click', function () {
+      row.remove();
+      renumberSets(setsContainer);
+    });
+  }
+
+
+  // ─── RENUMBER EXERCISE LABELS ────────────────────────────────
+  function renumberExercises() {
+    const blocks = document.querySelectorAll('.exercise-block');
+    blocks.forEach(function (block, i) {
+      block.querySelector('.ex-num').textContent = i + 1;
+    });
+  }
+
+
+  // ─── RENUMBER SET LABELS AFTER DELETION ──────────────────────
+  function renumberSets(setsContainer) {
+    const rows = setsContainer.querySelectorAll('.set-row');
+    rows.forEach(function (row, i) {
+      row.querySelector('.set-num-label').textContent = i + 1;
+    });
+  }
+
+
+  // ─── WIRE UP THE ADD EXERCISE BUTTON ────────────────────────
+  document.getElementById('add-exercise-btn').addEventListener('click', addExercise);
+
+  // Auto-add one exercise when page loads so it's not empty
+  addExercise();
+</script>
+{%  endblock  %}
