@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect
-from tracker.models import Workout,NutritionLog,Exercise, Set
+from tracker.models import Workout,NutritionLog,Exercise, Set,ContactMessage
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 
@@ -453,3 +453,36 @@ def edit_meal(request, meal_id):
         'meal': meal,
     }
     return render(request, 'edit_meal.html', context)
+
+def about(request):
+    return render(request, 'about.html')
+
+
+def contact(request):
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        subject = request.POST.get('subject', '').strip()
+        message = request.POST.get('message', '').strip()
+
+        if not name or not email or not subject or not message:
+            return render(request, 'contact.html', {
+                'error': 'Please fill in all fields.',
+                'name': name,
+                'email': email,
+                'subject': subject,
+                'message': message,
+            })
+
+        ContactMessage.objects.create(
+            name=name,
+            email=email,
+            subject=subject,
+            message=message,
+        )
+
+        return render(request, 'contact.html', {
+            'success': True,
+        })
+
+    return render(request, 'contact.html')
