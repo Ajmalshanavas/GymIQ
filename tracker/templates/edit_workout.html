@@ -1,0 +1,335 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit — {{ workout.title }}{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-wrapper">
+
+  <div class="dashboard-header">
+    <div>
+      <h1 class="dashboard-title">EDIT <span>WORKOUT</span></h1>
+      <p class="dashboard-sub">Update your session details 🔧</p>
+    </div>
+    <a href="{% url 'workout_detail' workout.id %}" class="btn-ghost">
+      <i class="bi bi-arrow-left"></i> Cancel
+    </a>
+  </div>
+
+  {% if error %}
+    <div class="gymiq-alert mb-4">
+      <i class="bi bi-exclamation-circle me-2"></i> {{ error }}
+    </div>
+  {% endif %}
+
+  <form method="POST" id="edit-workout-form" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="dashboard-card mb-4">
+      <div class="dashboard-card-header">
+        <h3 class="dashboard-card-title">WORKOUT DETAILS</h3>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="gymiq-label">Workout Title *</label>
+          <input
+            type="text"
+            name="title"
+            class="gymiq-input"
+            value="{{ workout.title }}"
+            required
+          >
+        </div>
+        <div class="form-group">
+          <label class="gymiq-label">Date *</label>
+          <input
+            type="date"
+            name="date"
+            class="gymiq-input"
+            value="{{ workout.date }}"
+            required
+          >
+        </div>
+      </div>
+      <div class="form-group mt-3">
+        <label class="gymiq-label">Notes (optional)</label>
+        <textarea
+          name="notes"
+          class="gymiq-input"
+          rows="2"
+        >{{ workout.notes }}</textarea>
+      </div>
+       <div class="form-group mt-3">
+  <label class="gymiq-label">Workout Photo (optional)</label>
+
+  {% if workout.image %}
+    <!-- existing image -->
+    <div class="current-image-container" id="current-image-container">
+      <img src="{{ workout.image.url }}" alt="Current workout photo" class="current-image-preview">
+      <div class="current-image-actions">
+        <span class="gymiq-label" style="color:var(--muted);">Current photo</span>
+        <button type="button" class="delete-btn" id="remove-current-btn">
+          <i class="bi bi-trash"></i> Remove photo
+        </button>
+      </div>
+    </div>
+    <input type="hidden" name="remove_image" id="remove-image-input" value="">
+  {% endif %}
+
+  <!-- upload new image -->
+  <div class="image-upload-area mt-2" id="image-upload-area">
+    <input
+      type="file"
+      name="image"
+      id="image-input"
+      accept="image/*"
+      style="display:none;"
+    >
+    <div class="image-upload-placeholder" id="upload-placeholder"
+         onclick="document.getElementById('image-input').click()">
+      <i class="bi bi-camera"></i>
+      <span>{% if workout.image %}Replace photo{% else %}Upload photo{% endif %}</span>
+      <small>JPG, PNG up to 5MB</small>
+    </div>
+    <div class="image-preview-container" id="image-preview-container" style="display:none;">
+      <img id="image-preview" src="" alt="Preview">
+      <button type="button" class="remove-image-btn" id="cancel-new-image-btn">
+        <i class="bi bi-x-circle-fill"></i>
+      </button>
+    </div>
+  </div>
+
+</div>
+    </div>
+
+    <div id="exercises-container">
+      {% for exercise in exercises %}
+        <div class="dashboard-card mb-3 exercise-block" data-exercise-index="{{ forloop.counter0 }}">
+          <div class="dashboard-card-header">
+            <h3 class="dashboard-card-title">EXERCISE <span class="ex-num">{{ forloop.counter }}</span></h3>
+            <button type="button" class="remove-exercise-btn" title="Remove exercise">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+          <div class="form-grid-2 mb-3">
+            <div class="form-group">
+              <label class="gymiq-label">Exercise Name *</label>
+              <input
+                type="text"
+                name="exercise_{{ forloop.counter0 }}_name"
+                class="gymiq-input"
+                value="{{ exercise.name }}"
+                required
+              >
+            </div>
+            <div class="form-group">
+              <label class="gymiq-label">Notes (optional)</label>
+              <input
+                type="text"
+                name="exercise_{{ forloop.counter0 }}_notes"
+                class="gymiq-input"
+                value="{{ exercise.notes }}"
+              >
+            </div>
+          </div>
+          <div class="sets-table-header">
+            <span>SET</span>
+            <span>REPS</span>
+            <span>WEIGHT (kg)</span>
+            <span></span>
+          </div>
+          <div class="sets-container">
+            {% for set in exercise.sets.all %}
+              <div class="set-row">
+                <span class="set-num-label">{{ set.set_number }}</span>
+                <input
+                  type="number"
+                  name="exercise_{{ exercise.id }}_set_{{ forloop.counter0 }}_reps"
+                  class="gymiq-input set-input"
+                  value="{{ set.reps }}"
+                  min="1"
+                  required
+                >
+                <input
+                  type="number"
+                  name="exercise_{{ exercise.id }}_set_{{ forloop.counter0 }}_weight"
+                  class="gymiq-input set-input"
+                  value="{{ set.weight }}"
+                  step="0.5"
+                  min="0"
+                  required
+                >
+                <button type="button" class="remove-set-btn">
+                  <i class="bi bi-x-circle"></i>
+                </button>
+              </div>
+            {% endfor %}
+          </div>
+          <button type="button" class="add-set-btn btn-ghost mt-2" style="font-size:0.85rem;padding:0.4rem 1rem;">
+            <i class="bi bi-plus"></i> Add Set
+          </button>
+        </div>
+      {% endfor %}
+    </div>
+
+    <button type="button" id="add-exercise-btn" class="btn-ghost w-100 mb-4">
+      <i class="bi bi-plus-circle"></i> Add Exercise
+    </button>
+
+    <div class="text-center mb-5">
+      <button type="submit" class="btn-primary-custom" style="font-size:1rem;padding:1rem 3rem;">
+        <i class="bi bi-check-circle me-2"></i> Save Changes
+      </button>
+    </div>
+
+  </form>
+</div>
+
+{% block extra_js %}
+<script>
+  let exerciseCounter = {{ exercises|length }};
+
+  function addExercise() {
+    const container = document.getElementById('exercises-container');
+    const exIndex = exerciseCounter;
+    exerciseCounter++;
+
+    const card = document.createElement('div');
+    card.className = 'dashboard-card mb-3 exercise-block';
+    card.dataset.exerciseIndex = exIndex;
+
+    card.innerHTML = `
+      <div class="dashboard-card-header">
+        <h3 class="dashboard-card-title">EXERCISE <span class="ex-num"></span></h3>
+        <button type="button" class="remove-exercise-btn" title="Remove exercise">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+      <div class="form-grid-2 mb-3">
+        <div class="form-group">
+          <label class="gymiq-label">Exercise Name *</label>
+          <input type="text" name="exercise_${exIndex}_name" class="gymiq-input" placeholder="e.g. Bench Press..." required>
+        </div>
+        <div class="form-group">
+          <label class="gymiq-label">Notes (optional)</label>
+          <input type="text" name="exercise_${exIndex}_notes" class="gymiq-input" placeholder="Notes...">
+        </div>
+      </div>
+      <div class="sets-table-header">
+        <span>SET</span><span>REPS</span><span>WEIGHT (kg)</span><span></span>
+      </div>
+      <div class="sets-container"></div>
+      <button type="button" class="add-set-btn btn-ghost mt-2" style="font-size:0.85rem;padding:0.4rem 1rem;">
+        <i class="bi bi-plus"></i> Add Set
+      </button>
+    `;
+
+    container.appendChild(card);
+
+    card.querySelector('.remove-exercise-btn').addEventListener('click', function() {
+      card.remove();
+      renumberExercises();
+    });
+
+    card.querySelector('.add-set-btn').addEventListener('click', function() {
+      addSet(card.querySelector('.sets-container'), exIndex);
+    });
+
+    renumberExercises();
+    addSet(card.querySelector('.sets-container'), exIndex);
+  }
+
+  function addSet(setsContainer, exIndex) {
+    const setIndex = setsContainer.children.length;
+    const row = document.createElement('div');
+    row.className = 'set-row';
+    row.innerHTML = `
+      <span class="set-num-label">${setIndex + 1}</span>
+      <input type="number" name="exercise_${exIndex}_set_${setIndex}_reps" class="gymiq-input set-input" placeholder="Reps" min="1" required>
+      <input type="number" name="exercise_${exIndex}_set_${setIndex}_weight" class="gymiq-input set-input" placeholder="kg" step="0.5" min="0" required>
+      <button type="button" class="remove-set-btn"><i class="bi bi-x-circle"></i></button>
+    `;
+    row.querySelector('.remove-set-btn').addEventListener('click', function() {
+      row.remove();
+    });
+    setsContainer.appendChild(row);
+  }
+
+  function renumberExercises() {
+    document.querySelectorAll('.exercise-block').forEach(function(block, i) {
+      block.querySelector('.ex-num').textContent = i + 1;
+    });
+  }
+
+  // Wire up existing remove buttons from Django-rendered exercises
+  document.querySelectorAll('.remove-exercise-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      btn.closest('.exercise-block').remove();
+      renumberExercises();
+    });
+  });
+
+  document.querySelectorAll('.add-set-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const block = btn.closest('.exercise-block');
+      const exIndex = block.dataset.exerciseIndex;
+      addSet(block.querySelector('.sets-container'), exIndex);
+    });
+  });
+
+  document.querySelectorAll('.remove-set-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      btn.closest('.set-row').remove();
+    });
+  });
+
+  document.getElementById('add-exercise-btn').addEventListener('click', addExercise);
+
+  // Image upload preview
+const imageInput = document.getElementById('image-input');
+const uploadPlaceholder = document.getElementById('upload-placeholder');
+const imagePreviewContainer = document.getElementById('image-preview-container');
+const imagePreview = document.getElementById('image-preview');
+const cancelNewImageBtn = document.getElementById('cancel-new-image-btn');
+const removeCurrentBtn = document.getElementById('remove-current-btn');
+const currentImageContainer = document.getElementById('current-image-container');
+const removeImageInput = document.getElementById('remove-image-input');
+
+// Preview new image when selected
+imageInput.addEventListener('change', function() {
+  const file = this.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      imagePreview.src = e.target.result;
+      uploadPlaceholder.style.display = 'none';
+      imagePreviewContainer.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+// Cancel new image selection
+if (cancelNewImageBtn) {
+  cancelNewImageBtn.addEventListener('click', function() {
+    imageInput.value = '';
+    imagePreview.src = '';
+    uploadPlaceholder.style.display = 'flex';
+    imagePreviewContainer.style.display = 'none';
+  });
+}
+
+// Remove existing image
+if (removeCurrentBtn) {
+  removeCurrentBtn.addEventListener('click', function() {
+    if (confirm('Remove the current photo?')) {
+      currentImageContainer.style.display = 'none';
+      removeImageInput.value = 'yes';
+    }
+  });
+}
+</script>
+{% endblock %}
+
+{% endblock %}

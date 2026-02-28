@@ -14,10 +14,10 @@
       <p class="dashboard-sub">{{ today }} — Let's crush it today 💪</p>
     </div>
     <div class="dashboard-actions">
-      <a href="#" class="btn-primary-custom">
+      <a href="{% url 'log_workout' %}" class="btn-primary-custom">
         <i class="bi bi-plus-circle"></i> Log Workout
       </a>
-      <a href="#" class="btn-ghost">
+      <a href="{% url 'log_meal' %}" class="btn-ghost">
         <i class="bi bi-egg-fried"></i> Log Meal
       </a>
     </div>
@@ -58,6 +58,26 @@
       </div>
     </div>
 
+    <div class="stat-card">
+      <div class="stat-card-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+      <div class="stat-card-info">
+        <div class="stat-card-num">{{ streak }} 🔥</div>
+        <div class="stat-card-label">Day Streak</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-card-icon"><i class="bi bi-person"></i></div>
+      <div class="stat-card-info">
+        <div class="stat-card-num">
+          {% if bmi %}{{ bmi }}{% else %}--{% endif %}
+        </div>
+        <div class="stat-card-label">
+          BMI {% if bmi_category %}({{ bmi_category }}){% endif %}
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- MAIN CONTENT -->
@@ -67,7 +87,7 @@
     <div class="dashboard-card">
       <div class="dashboard-card-header">
         <h3 class="dashboard-card-title">RECENT WORKOUTS</h3>
-        <a href="#" class="dashboard-card-link">
+        <a href="{% url 'log_workout' %}"  class="dashboard-card-link" style="color: var(--fire)";>
           + Add New
         </a>
       </div>
@@ -77,24 +97,42 @@
           <div class="workout-item">
             <div class="workout-item-left">
               <div class="workout-item-icon">
-                <i class="bi bi-dumbbell"></i>
+                <i class="bi bi-person-arms-up"></i>
               </div>
               <div>
-                <div class="workout-item-name">{{ workout.title }}</div>
+                <div class="workout-item-name">
+                  <a href="{% url 'workout_detail' workout.id %}" style="color:var(--light);text-decoration:none;">
+                    {{ workout.title }}
+                  </a>
+                </div>
                 <div class="workout-item-detail">
                   {{ workout.get_total_exercises }} exercises ·
                   {{ workout.get_total_volume }} kg total volume
                 </div>
               </div>
             </div>
-            <div class="workout-item-date">{{ workout.date }}</div>
+            <div class="workout-item-right">
+              <div class="workout-item-date">{{ workout.date }}</div>
+              <a href="{% url 'delete_workout' workout.id %}"
+                 class="delete-btn"
+                 onclick="return confirm('Delete {{ workout.title }}? This cannot be undone.')"
+                 title="Delete workout">
+                <i class="bi bi-trash"></i>
+              </a>
+                <a href="{% url 'edit_workout' workout.id %}"
+                 class="edit-btn"
+
+                 title="edit workout">
+                <i class="bi bi-pencil"></i>
+              </a>
+            </div>
           </div>
         {% endfor %}
       {% else %}
         <div class="empty-state">
           <i class="bi bi-journal-x"></i>
           <p>No workouts yet. Log your first workout!</p>
-          <a href="#" class="btn-primary-custom mt-2">
+          <a href="{% url 'log_workout' %}" class="btn-primary-custom mt-2">
             + Log Workout
           </a>
         </div>
@@ -106,30 +144,43 @@
     <div class="dashboard-card">
       <div class="dashboard-card-header">
         <h3 class="dashboard-card-title">TODAY'S NUTRITION</h3>
-        <a href="#" class="dashboard-card-link">
+        <a href="{% url 'log_meal' %}" class="dashboard-card-link" style="color: var(--fire)";>
           + Add Meal
         </a>
       </div>
 
       {% if todays_nutrition %}
         {% for log in todays_nutrition %}
-          <div class="nutrition-item">
-            <div class="nutrition-item-left">
-              <div class="nutrition-item-icon">
-                <i class="bi bi-egg-fried"></i>
-              </div>
-              <div>
-                <div class="nutrition-item-name">{{ log.meal_name }}</div>
-                <div class="nutrition-item-detail">
-                  P: {{ log.protein }}g ·
-                  C: {{ log.carbs }}g ·
-                  F: {{ log.fat }}g
-                </div>
-              </div>
-            </div>
-            <div class="nutrition-item-calories">{{ log.calories }} kcal</div>
-          </div>
-        {% endfor %}
+  <div class="nutrition-item">
+    <div class="nutrition-item-left">
+      <div class="nutrition-item-icon">
+        <i class="bi bi-egg-fried"></i>
+      </div>
+      <div>
+        <div class="nutrition-item-name">{{ log.meal_name }}</div>
+        <div class="nutrition-item-detail">
+          P: {{ log.protein }}g ·
+          C: {{ log.carbs }}g ·
+          F: {{ log.fat }}g
+        </div>
+      </div>
+    </div>
+    <div class="nutrition-item-right">
+      <div class="nutrition-item-calories">{{ log.calories }} kcal</div>
+      <a href="{% url 'edit_meal' log.id %}"
+         class="edit-btn"
+         title="Edit meal">
+        <i class="bi bi-pencil"></i>
+      </a>
+      <a href="{% url 'delete_meal' log.id %}"
+         class="delete-btn"
+         onclick="return confirm('Delete {{ log.meal_name }}? This cannot be undone.')"
+         title="Delete meal">
+        <i class="bi bi-trash"></i>
+      </a>
+    </div>
+  </div>
+  {% endfor %}
 
         <!-- Daily Total -->
         <div class="nutrition-total">
@@ -143,7 +194,7 @@
         <div class="empty-state">
           <i class="bi bi-egg"></i>
           <p>No meals logged today. Track your nutrition!</p>
-          <a href="#" class="btn-primary-custom mt-2">
+          <a href="{% url 'log_meal' %}" class="btn-primary-custom mt-2">
             + Log Meal
           </a>
         </div>

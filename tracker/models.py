@@ -11,6 +11,11 @@ class Workout(models.Model):
     title = models.CharField(max_length=200)
     date = models.DateField()
     notes = models.TextField(blank=True)
+    image = models.ImageField(
+        upload_to='workout_images/',
+        null=True,
+        blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

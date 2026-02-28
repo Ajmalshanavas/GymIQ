@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ workout.title }}{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-wrapper">
+
+  <!-- HEADER -->
+  <div class="dashboard-header">
+    <div>
+      <h1 class="dashboard-title">{{ workout.title|upper }}</h1>
+      <p class="dashboard-sub">{{ workout.date }} — {{ workout.get_total_exercises }} exercises</p>
+    </div>
+    <div class="dashboard-actions">
+      <a href="{% url 'edit_workout' workout.id %}" class="btn-primary-custom">
+        <i class="bi bi-pencil"></i> Edit Workout
+      </a>
+      <a href="{% url 'dashboard' %}" class="btn-ghost">
+        <i class="bi bi-arrow-left"></i> Dashboard
+      </a>
+        {% if workout.image %}
+  <div class="workout-image-container mb-4">
+    <img src="{{ workout.image.url }}" alt="{{ workout.title }}" class="workout-image">
+  </div>
+{% endif %}
+    </div>
+  </div>
+
+  <!-- WORKOUT SUMMARY CARDS -->
+  <div class="stats-grid mb-4">
+    <div class="stat-card">
+      <div class="stat-card-icon"><i class="bi bi-dumbbell"></i></div>
+      <div class="stat-card-info">
+        <div class="stat-card-num">{{ workout.get_total_exercises }}</div>
+        <div class="stat-card-label">Exercises</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-icon"><i class="bi bi-layers"></i></div>
+      <div class="stat-card-info">
+        <div class="stat-card-num">{{ workout.get_total_sets }}</div>
+        <div class="stat-card-label">Total Sets</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-icon"><i class="bi bi-graph-up"></i></div>
+      <div class="stat-card-info">
+        <div class="stat-card-num">{{ workout.get_total_volume }}<span style="font-size:1rem">kg</span></div>
+        <div class="stat-card-label">Total Volume</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-icon"><i class="bi bi-fire"></i></div>
+      <div class="stat-card-info">
+        <div class="stat-card-num">~{{ total_calories_burned }}</div>
+        <div class="stat-card-label">Kcal Burned</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTES -->
+  {% if workout.notes %}
+    <div class="dashboard-card mb-4">
+      <div class="dashboard-card-header">
+        <h3 class="dashboard-card-title">SESSION NOTES</h3>
+      </div>
+      <p style="color:var(--muted);font-size:0.9rem;line-height:1.7;">{{ workout.notes }}</p>
+    </div>
+  {% endif %}
+
+  <!-- EXERCISES -->
+  {% for item in exercise_data %}
+    <div class="dashboard-card mb-3">
+
+      <div class="detail-exercise-header">
+        <div class="detail-exercise-left">
+          <div class="detail-exercise-icon">
+            <i class="bi bi-dumbbell"></i>
+          </div>
+          <div>
+            <div class="detail-exercise-name">{{ item.exercise.name }}</div>
+            {% if item.exercise.notes %}
+              <div class="detail-exercise-note">{{ item.exercise.notes }}</div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="detail-calorie-badge">
+          <i class="bi bi-fire"></i> ~{{ item.calories_burned }} kcal
+        </div>
+      </div>
+
+      <!-- Sets Table -->
+      <div class="sets-detail-table">
+        <div class="sets-detail-header">
+          <span>SET</span>
+          <span>REPS</span>
+          <span>WEIGHT</span>
+          <span>VOLUME</span>
+        </div>
+        {% for set in item.sets %}
+          <div class="sets-detail-row">
+            <span class="set-num-label">{{ set.set_number }}</span>
+            <span>{{ set.reps }} reps</span>
+            <span>{{ set.weight }} kg</span>
+            <span style="color:var(--fire);">{{ set.get_set_volume }} kg</span>
+          </div>
+        {% endfor %}
+      </div>
+
+    </div>
+  {% endfor %}
+
+</div>
+
+{% endblock %}

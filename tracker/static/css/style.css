@@ -242,23 +242,18 @@ nav {
   margin-top: 0.2rem;
 }
 
-/* ── HERO VISUAL / APP MOCKUP ── */
-.hero-visual {
-  position: relative;
-  animation: fadeUp 0.8s 0.3s ease both;
-}
-
-.app-mockup {
+/* ── DASHBOARD MOCKUP (Hero) ── */
+.dash-mockup {
   background: var(--card-bg);
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,77,0,0.1);
+  box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,77,0,0.08);
   position: relative;
   overflow: hidden;
 }
 
-.app-mockup::before {
+.dash-mockup::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
@@ -266,108 +261,195 @@ nav {
   background: linear-gradient(90deg, transparent, rgba(255,77,0,0.5), transparent);
 }
 
-.mockup-header {
+/* Header */
+.dash-mockup-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.2rem;
 }
 
-.mockup-title {
+.dash-mockup-title {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.1rem;
+  font-size: 1rem;
   letter-spacing: 0.08em;
   color: var(--light);
 }
 
-.mockup-date {
+.dash-mockup-title span { color: var(--fire); }
+
+.dash-mockup-sub {
   font-size: 0.7rem;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-.exercise-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.7rem 0.9rem;
-  border-radius: 8px;
-  margin-bottom: 0.5rem;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.05);
-  transition: background 0.2s;
-}
-
-.exercise-row:hover { background: rgba(255,77,0,0.06); }
-
-.ex-name {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--light);
-}
-
-.ex-detail {
-  font-size: 0.75rem;
   color: var(--muted);
   margin-top: 0.1rem;
 }
 
-.ex-badge {
-  background: rgba(255,77,0,0.15);
+.dash-mockup-avatar {
+  width: 32px;
+  height: 32px;
+  background: var(--fire);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  color: white;
+}
+
+/* Stats Row */
+.dash-mockup-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1.2rem;
+}
+
+.dash-stat {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+  padding: 0.6rem 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dash-stat-icon {
   color: var(--fire);
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 0.2rem 0.6rem;
-  border-radius: 20px;
+  font-size: 0.85rem;
+}
+
+.dash-stat-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.95rem;
+  color: var(--light);
+  line-height: 1;
+}
+
+.dash-stat-label {
+  font-size: 0.6rem;
+  color: var(--muted);
+  text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-.progress-bar-custom {
-  height: 3px;
-  background: rgba(255,255,255,0.07);
-  border-radius: 2px;
-  margin-top: 0.5rem;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--fire), var(--fire-glow));
-  border-radius: 2px;
-  animation: grow 1.5s 1s ease both;
-}
-
-.mockup-footer {
-  margin-top: 1.2rem;
-  display: flex;
-  gap: 0.5rem;
-}
-
-.mock-btn {
-  flex: 1;
-  background: var(--fire);
-  color: white;
-  border: none;
-  padding: 0.6rem;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  text-align: center;
-}
-
-.mock-btn-ghost {
-  flex: 1;
-  background: rgba(255,255,255,0.05);
+/* Section titles */
+.dash-mockup-section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
   color: var(--muted);
-  border: 1px solid rgba(255,255,255,0.08);
-  padding: 0.6rem;
-  border-radius: 8px;
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Workout items */
+.dash-workout-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.55rem 0.6rem;
+  border-radius: 6px;
+  margin-bottom: 0.4rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.dash-workout-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.dash-workout-icon {
+  width: 28px;
+  height: 28px;
+  background: rgba(255,77,0,0.1);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fire);
+  font-size: 0.75rem;
+}
+
+.dash-workout-name {
   font-size: 0.8rem;
-  cursor: pointer;
+  font-weight: 500;
+  color: var(--light);
+}
+
+.dash-workout-detail {
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
+.dash-workout-date {
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
+/* Nutrition items */
+.dash-nutrition-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.55rem 0.6rem;
+  border-radius: 6px;
+  margin-bottom: 0.4rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.dash-nutrition-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.dash-nutrition-icon {
+  width: 28px;
+  height: 28px;
+  background: rgba(255,77,0,0.1);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fire);
+  font-size: 0.75rem;
+}
+
+.dash-nutrition-name {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--light);
+}
+
+.dash-nutrition-detail {
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
+.dash-nutrition-kcal {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.95rem;
+  color: var(--fire);
+}
+.dash-empty {
+  font-size: 0.78rem;
+  color: var(--muted);
+  padding: 0.6rem 0.5rem;
   text-align: center;
 }
+
+.dash-mockup-cta {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
 
 /* ── FLOATING BADGES ── */
 .float-badge {
@@ -708,11 +790,6 @@ footer span { color: var(--fire); }
   text-decoration: underline;
 }
 
-/* ── AUTH PAGES ── */
-.auth-wrapper { ... }
-.auth-card { ... }
-```
-
 /* ── DASHBOARD ── */
 .dashboard-wrapper {
   padding: 7rem 2rem 3rem;
@@ -753,10 +830,14 @@ footer span { color: var(--fire); }
 /* STATS GRID */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 1rem;
   margin-bottom: 2rem;
 }
+
+
+
+
 
 .stat-card {
   background: var(--card-bg);
@@ -781,6 +862,7 @@ footer span { color: var(--fire); }
   justify-content: center;
   color: var(--fire);
   font-size: 1.2rem;
+  flex-shrink: 0;
 }
 
 .stat-card-num {
@@ -812,14 +894,7 @@ footer span { color: var(--fire); }
   padding: 1.8rem;
 }
 
-.dashboard-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.dashboard-card-title {
+/* DASHBOARD GRID */
   font-family: 'Bebas Neue', sans-serif;
   font-size: 1.2rem;
   letter-spacing: 0.08em;
@@ -943,6 +1018,11 @@ footer span { color: var(--fire); }
   font-size: 0.85rem;
   color: var(--muted);
 }
+.nutrition-item-right {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
 
 /* EMPTY STATE */
 .empty-state {
@@ -964,12 +1044,295 @@ footer span { color: var(--fire); }
 }
 
 /* RESPONSIVE */
+/* RESPONSIVE */
+/* ── RESPONSIVE ── */
+@media (max-width: 1200px) {
+  .stats-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
 @media (max-width: 768px) {
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .dashboard-grid { grid-template-columns: 1fr; }
   .dashboard-header { flex-direction: column; align-items: flex-start; }
+  .form-grid-2 { grid-template-columns: 1fr; }
+  .form-grid-3 { grid-template-columns: 1fr; }
+  .sets-table-header, .set-row { grid-template-columns: 30px 1fr 1fr 30px; }
 }
-```
+/* ── DELETE BUTTON ── */
+.workout-item-right {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.delete-btn {
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: color 0.2s;
+  padding: 0.3rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-btn:hover {
+  color: #ff4d4d;
+}
+/* ── EDIT BUTTON ── */
+.edit-btn {
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: color 0.2s;
+  padding: 0.3rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-btn:hover {
+  color: var(--fire);
+}
 /* ── DASHBOARD ── */
 
+/* ── LOG WORKOUT PAGE ── */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
 
+.gymiq-label {
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.gymiq-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--light);
+  padding: 0.65rem 0.9rem;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.gymiq-input:focus {
+  border-color: var(--fire);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.gymiq-input::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+/* Sets table header */
+.sets-table-header {
+  display: grid;
+  grid-template-columns: 40px 1fr 1fr 36px;
+  gap: 0.5rem;
+  padding: 0.4rem 0.2rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 0.5rem;
+}
+
+/* Individual set row */
+.set-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 1fr 36px;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.set-num-label {
+  color: var(--fire);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.set-input {
+  padding: 0.5rem 0.6rem !important;
+}
+
+/* Remove buttons */
+.remove-exercise-btn,
+.remove-set-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1rem;
+  transition: color 0.2s;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-exercise-btn:hover,
+.remove-set-btn:hover {
+  color: #ff4d4d;
+}
+
+/* Error alert */
+.gymiq-alert {
+  background: rgba(255, 77, 77, 0.1);
+  border: 1px solid rgba(255, 77, 77, 0.3);
+  color: #ff4d4d;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+/* Utility */
+.w-100 {
+  width: 100%;
+  justify-content: center;
+}
+
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 1rem; }
+.mt-4 { margin-top: 1.5rem; }
+.mb-3 { margin-bottom: 1rem; }
+.mb-4 { margin-bottom: 1.5rem; }
+.mb-5 { margin-bottom: 3rem; }
+
+/* Responsive */
+@media (max-width: 600px) {
+  .form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+  .sets-table-header,
+  .set-row {
+    grid-template-columns: 30px 1fr 1fr 30px;
+  }
+}
+
+/* ── LOG MEAL PAGE ── */
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+
+.macro-label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.protein-label { color: #4fc3f7; }
+.carbs-label { color: #81c784; }
+.fat-label { color: #ffb74d; }
+
+@media (max-width: 600px) {
+  .form-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── IMAGE UPLOAD ── */
+.image-upload-area {
+  border: 2px dashed rgba(255,255,255,0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.image-upload-area:hover {
+  border-color: var(--fire);
+}
+
+.image-upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  cursor: pointer;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+
+.image-upload-placeholder:hover {
+  color: var(--fire);
+}
+
+.image-upload-placeholder i {
+  font-size: 2rem;
+}
+
+.image-upload-placeholder span {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.image-upload-placeholder small {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.2);
+}
+
+.image-preview-container {
+  position: relative;
+}
+
+.image-preview-container img {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  display: block;
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: rgba(0,0,0,0.6);
+  border: none;
+  color: white;
+  font-size: 1.3rem;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.remove-image-btn:hover {
+  background: #ff4d4d;
+}
+
+/* ── WORKOUT IMAGE (Detail Page) ── */
+.workout-image-container {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.workout-image {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  display: block;
+}

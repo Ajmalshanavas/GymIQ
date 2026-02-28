@@ -1,26 +1,9 @@
-<!DOCTYPE html>
+{% extends 'base.html' %}
 {% load static %}
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>GymIQ — Train Smarter</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
-  <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
-</head>
-<body>
 
-<!-- NAVBAR -->
-<nav>
-  <a href="#" class="nav-logo">Gym<span>IQ</span></a>
-  <div class="nav-links d-none d-md-flex align-items-center">
-    <a href="#features">Features</a>
-    <a href="#how">How It Works</a>
-    <a href="#" class="btn-nav">Get Started</a>
-  </div>
-</nav>
+{% block title %}Train Smarter{% endblock %}
+
+{% block content %}
 
 <!-- HERO -->
 <section class="hero">
@@ -43,7 +26,11 @@
           Track workouts, monitor nutrition, and visualize your gains — all in one blazing-fast app built for serious athletes. Welcome to <strong style="color:var(--fire)">GymIQ</strong>.
         </p>
         <div class="hero-cta">
-          <a href="#" class="btn-primary-custom">Start For Free</a>
+          {% if request.user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" class="btn-primary-custom">Go to Dashboard</a>
+          {% else %}
+            <a href="{% url 'register' %}" class="btn-primary-custom">Start For Free</a>
+          {% endif %}
           <a href="#features" class="btn-ghost">
             <i class="bi bi-play-circle"></i> See Features
           </a>
@@ -65,64 +52,301 @@
       </div>
 
       <div class="col-lg-6">
-        <div class="hero-visual ps-lg-4">
-          <!-- Floating badges -->
-          <div class="float-badge float-badge-1">
-            <div class="fb-icon"><i class="bi bi-fire"></i></div>
-            <div class="fb-text">
-              <div class="fb-val">842 kcal</div>
-              <div class="fb-label">Burned Today</div>
+  <div class="hero-visual ps-lg-4">
+
+    <!-- Floating badges -->
+    <div class="float-badge float-badge-1">
+      <div class="fb-icon"><i class="bi bi-fire"></i></div>
+      <div class="fb-text">
+        {% if is_logged_in %}
+          <div class="fb-val">{{ total_calories }} kcal</div>
+        {% else %}
+          <div class="fb-val">842 kcal</div>
+        {% endif %}
+        <div class="fb-label">Today's Calories</div>
+      </div>
+    </div>
+
+    <div class="float-badge float-badge-2">
+      <div class="fb-icon"><i class="bi bi-trophy-fill"></i></div>
+      <div class="fb-text">
+        {% if is_logged_in %}
+          {% if recent_workouts %}
+            <div class="fb-val">{{ recent_workouts.0.title }}</div>
+            <div class="fb-label">Last Workout</div>
+          {% else %}
+            <div class="fb-val">No workouts yet!</div>
+            <div class="fb-label">Log your first</div>
+          {% endif %}
+        {% else %}
+          <div class="fb-val">New PR!</div>
+          <div class="fb-label">Bench Press 100kg</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Smart Dashboard Mockup -->
+    <div class="dash-mockup">
+
+      <!-- Header -->
+      <div class="dash-mockup-header">
+        <div>
+          {% if is_logged_in %}
+            <div class="dash-mockup-title">WELCOME, <span>{{ user.username|upper }}!</span></div>
+            <div class="dash-mockup-sub">{{ today }} — Let's crush it 💪</div>
+          {% else %}
+            <div class="dash-mockup-title">WELCOME, <span>ATHLETE!</span></div>
+            <div class="dash-mockup-sub">Your dashboard awaits 💪</div>
+          {% endif %}
+        </div>
+        <div class="dash-mockup-avatar">
+          {% if is_logged_in %}{{ user.username|first|upper }}{% else %}?{% endif %}
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="dash-mockup-stats">
+        <div class="dash-stat">
+          <div class="dash-stat-icon"><i class="bi bi-fire"></i></div>
+          <div>
+            <div class="dash-stat-num">
+              {% if is_logged_in %}{{ total_calories }}{% else %}2,140{% endif %}
             </div>
+            <div class="dash-stat-label">Calories</div>
           </div>
-          <div class="float-badge float-badge-2">
-            <div class="fb-icon"><i class="bi bi-trophy-fill"></i></div>
-            <div class="fb-text">
-              <div class="fb-val">New PR!</div>
-              <div class="fb-label">Bench Press 100kg</div>
+        </div>
+        <div class="dash-stat">
+          <div class="dash-stat-icon"><i class="bi bi-lightning-charge"></i></div>
+          <div>
+            <div class="dash-stat-num">
+              {% if is_logged_in %}{{ total_protein }}g{% else %}142g{% endif %}
             </div>
+            <div class="dash-stat-label">Protein</div>
           </div>
-
-          <!-- App Mockup -->
-          <div class="app-mockup">
-            <div class="mockup-header">
-              <span class="mockup-title">Today's Workout</span>
-              <span class="mockup-date">Mon, Feb 24</span>
+        </div>
+        <div class="dash-stat">
+          <div class="dash-stat-icon"><i class="bi bi-bar-chart"></i></div>
+          <div>
+            <div class="dash-stat-num">
+              {% if is_logged_in %}{{ total_carbs }}g{% else %}210g{% endif %}
             </div>
-
-            <div class="exercise-row">
-              <div>
-                <div class="ex-name">Bench Press</div>
-                <div class="ex-detail">4 sets × 8 reps · 80 kg</div>
-                <div class="progress-bar-custom"><div class="progress-fill" style="width:90%"></div></div>
-              </div>
-              <span class="ex-badge">DONE</span>
+            <div class="dash-stat-label">Carbs</div>
+          </div>
+        </div>
+        <div class="dash-stat">
+          <div class="dash-stat-icon"><i class="bi bi-droplet"></i></div>
+          <div>
+            <div class="dash-stat-num">
+              {% if is_logged_in %}{{ total_fat }}g{% else %}58g{% endif %}
             </div>
-
-            <div class="exercise-row">
-              <div>
-                <div class="ex-name">Squat</div>
-                <div class="ex-detail">4 sets × 6 reps · 100 kg</div>
-                <div class="progress-bar-custom"><div class="progress-fill" style="width:75%"></div></div>
-              </div>
-              <span class="ex-badge">DONE</span>
-            </div>
-
-            <div class="exercise-row">
-              <div>
-                <div class="ex-name">Deadlift</div>
-                <div class="ex-detail">3 sets × 5 reps · 120 kg</div>
-                <div class="progress-bar-custom"><div class="progress-fill" style="width:40%"></div></div>
-              </div>
-              <span class="ex-badge" style="background:rgba(255,255,255,0.06);color:var(--muted);">IN PROGRESS</span>
-            </div>
-
-            <div class="mockup-footer">
-              <div class="mock-btn">+ Log Set</div>
-              <div class="mock-btn-ghost">View History</div>
-            </div>
+            <div class="dash-stat-label">Fat</div>
           </div>
         </div>
       </div>
+
+      <!-- Recent Workouts -->
+      <div class="dash-mockup-section-title">RECENT WORKOUTS</div>
+
+      {% if is_logged_in %}
+        {% if recent_workouts %}
+          {% for workout in recent_workouts %}
+            <div class="dash-workout-item">
+              <div class="dash-workout-left">
+                <div class="dash-workout-icon"><i class="bi bi-dumbbell"></i></div>
+                <div>
+                  <div class="dash-workout-name">{{ workout.title }}</div>
+                  <div class="dash-workout-detail">
+                    {{ workout.get_total_exercises }} exercises ·
+                    {{ workout.get_total_volume }} kg volume
+                  </div>
+                </div>
+              </div>
+              <div class="dash-workout-date">{{ workout.date }}</div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="dash-empty">
+            <i class="bi bi-journal-x"></i> No workouts yet —
+            <a href="{% url 'log_workout' %}" style="color:var(--fire)">log your first!</a>
+          </div>
+        {% endif %}
+
+      {% else %}
+        <div class="dash-workout-item">
+          <div class="dash-workout-left">
+            <div class="dash-workout-icon"><i class="bi bi-dumbbell"></i></div>
+            <div>
+              <div class="dash-workout-name">Push Day A</div>
+              <div class="dash-workout-detail">5 exercises · 4,200 kg volume</div>
+            </div>
+          </div>
+          <div class="dash-workout-date">Feb 24</div>
+        </div>
+        <div class="dash-workout-item">
+          <div class="dash-workout-left">
+            <div class="dash-workout-icon"><i class="bi bi-dumbbell"></i></div>
+            <div>
+              <div class="dash-workout-name">Leg Day</div>
+              <div class="dash-workout-detail">4 exercises · 6,800 kg volume</div>
+            </div>
+          </div>
+          <div class="dash-workout-date">Feb 22</div>
+        </div>
+      {% endif %}
+
+      <!-- Today's Nutrition -->
+      <div class="dash-mockup-section-title mt-2">TODAY'S NUTRITION</div>
+
+      {% if is_logged_in %}
+        {% if todays_nutrition %}
+          {% for log in todays_nutrition %}
+            <div class="dash-nutrition-item">
+              <div class="dash-nutrition-left">
+                <div class="dash-nutrition-icon"><i class="bi bi-egg-fried"></i></div>
+                <div>
+                  <div class="dash-nutrition-name">{{ log.meal_name }}</div>
+                  <div class="dash-nutrition-detail">
+                    P: {{ log.protein }}g · C: {{ log.carbs }}g · F: {{ log.fat }}g
+                  </div>
+                </div>
+              </div>
+              <div class="dash-nutrition-kcal">{{ log.calories }} kcal</div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="dash-empty">
+            <i class="bi bi-egg"></i> No meals logged —
+            <a href="{% url 'log_meal' %}" style="color:var(--fire)">log your first!</a>
+          </div>
+        {% endif %}
+
+      {% else %}
+        <div class="dash-nutrition-item">
+          <div class="dash-nutrition-left">
+            <div class="dash-nutrition-icon"><i class="bi bi-egg-fried"></i></div>
+            <div>
+              <div class="dash-nutrition-name">Chicken & Rice</div>
+              <div class="dash-nutrition-detail">P: 45g · C: 60g · F: 12g</div>
+            </div>
+          </div>
+          <div class="dash-nutrition-kcal">550 kcal</div>
+        </div>
+        <div class="dash-nutrition-item">
+          <div class="dash-nutrition-left">
+            <div class="dash-nutrition-icon"><i class="bi bi-egg-fried"></i></div>
+            <div>
+              <div class="dash-nutrition-name">Protein Shake</div>
+              <div class="dash-nutrition-detail">P: 30g · C: 8g · F: 3g</div>
+            </div>
+          </div>
+          <div class="dash-nutrition-kcal">180 kcal</div>
+        </div>
+      {% endif %}
+
+      <!-- CTA for non logged in users -->
+      {% if not is_logged_in %}
+        <div class="dash-mockup-cta">
+          <a href="{% url 'register' %}" class="btn-primary-custom" style="font-size:0.8rem; padding:0.6rem 1.5rem; width:100%; text-align:center;">
+            <i class="bi bi-person-plus me-1"></i> Create Free Account
+          </a>
+        </div>
+      {% endif %}
+
+    </div>
+
+  </div>
+</div>
+    </div>
+  </div>
+</section>
+
+<!-- CAROUSEL -->
+<section class="carousel-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-eyebrow">See It In Action</div>
+      <h2 class="section-title">EVERYTHING YOU NEED TO<br><span style="color:var(--fire)">DOMINATE.</span></h2>
+    </div>
+
+    <div id="gymiqCarousel" class="carousel slide gymiq-carousel" data-bs-ride="carousel" data-bs-interval="4000">
+
+      <!-- Indicators -->
+      <div class="carousel-indicators gymiq-indicators">
+        <button type="button" data-bs-target="#gymiqCarousel" data-bs-slide-to="0" class="active"></button>
+        <button type="button" data-bs-target="#gymiqCarousel" data-bs-slide-to="1"></button>
+        <button type="button" data-bs-target="#gymiqCarousel" data-bs-slide-to="2"></button>
+      </div>
+
+      <!-- Slides -->
+      <div class="carousel-inner gymiq-carousel-inner">
+
+        <!-- Slide 1 -->
+        <div class="carousel-item active">
+          <div class="gymiq-slide" style="background-image: url('{% static 'img/slide1.jpg' %}')">
+            <div class="slide-overlay"></div>
+            <div class="slide-content">
+              <div class="slide-eyebrow">
+                <i class="bi bi-journal-text"></i> Workout Tracking
+              </div>
+              <h3 class="slide-title">LOG EVERY REP.<br>EVERY SET. EVERY WIN.</h3>
+              <p class="slide-desc">Track your exercises, weights, and sets with zero friction. Your complete training history, always at your fingertips.</p>
+              {% if request.user.is_authenticated %}
+                <a href="{% url 'log_workout' %}" class="btn-primary-custom">Log Workout</a>
+              {% else %}
+                <a href="{% url 'register' %}" class="btn-primary-custom">Get Started Free</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide 2 -->
+        <div class="carousel-item">
+          <div class="gymiq-slide" style="background-image: url('{% static 'img/slide2.jpg' %}')">
+            <div class="slide-overlay"></div>
+            <div class="slide-content">
+              <div class="slide-eyebrow">
+                <i class="bi bi-egg-fried"></i> Nutrition Tracking
+              </div>
+              <h3 class="slide-title">FUEL YOUR BODY.<br>TRACK YOUR MACROS.</h3>
+              <p class="slide-desc">Log meals, monitor calories, protein, carbs and fats. Precision nutrition to match your training intensity.</p>
+              {% if request.user.is_authenticated %}
+                <a href="{% url 'log_meal' %}" class="btn-primary-custom">Log Meal</a>
+              {% else %}
+                <a href="{% url 'register' %}" class="btn-primary-custom">Get Started Free</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide 3 -->
+        <div class="carousel-item">
+          <div class="gymiq-slide" style="background-image: url('{% static 'img/slide3.jpg' %}')">
+            <div class="slide-overlay"></div>
+            <div class="slide-content">
+              <div class="slide-eyebrow">
+                <i class="bi bi-graph-up-arrow"></i> Progress & PRs
+              </div>
+              <h3 class="slide-title">WATCH YOURSELF<br>GROW STRONGER.</h3>
+              <p class="slide-desc">Visualize your strength gains over time. Celebrate personal records and push past every limit you set.</p>
+              {% if request.user.is_authenticated %}
+                <a href="{% url 'dashboard' %}" class="btn-primary-custom">View Dashboard</a>
+              {% else %}
+                <a href="{% url 'register' %}" class="btn-primary-custom">Get Started Free</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Controls -->
+      <button class="carousel-control-prev gymiq-control" type="button" data-bs-target="#gymiqCarousel" data-bs-slide="prev">
+        <i class="bi bi-chevron-left"></i>
+      </button>
+      <button class="carousel-control-next gymiq-control" type="button" data-bs-target="#gymiqCarousel" data-bs-slide="next">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+
     </div>
   </div>
 </section>
@@ -134,7 +358,6 @@
       <div class="section-eyebrow">What You Get</div>
       <h2 class="section-title">BUILT TO HELP<br>YOU <span style="color:var(--fire)">GROW.</span></h2>
     </div>
-
     <div class="row g-4">
       <div class="col-md-6 col-lg-4">
         <div class="feature-card">
@@ -161,7 +384,7 @@
         <div class="feature-card">
           <div class="feature-icon"><i class="bi bi-person-check"></i></div>
           <div class="feature-title">Secure Auth</div>
-          <p class="feature-desc">Your personal data, safe and secure. Login with email or social accounts — your progress stays yours.</p>
+          <p class="feature-desc">Your personal data, safe and secure. Login with email — your progress stays yours.</p>
         </div>
       </div>
       <div class="col-md-6 col-lg-4">
@@ -171,13 +394,13 @@
           <p class="feature-desc">Automatically detect and celebrate your PRs. Every milestone tracked, every achievement earned.</p>
         </div>
       </div>
-      <div class="col-md-6 col-lg-4">
+      <!-----<div class="col-md-6 col-lg-4">
         <div class="feature-card">
           <div class="feature-icon"><i class="bi bi-phone"></i></div>
           <div class="feature-title">Mobile Ready</div>
           <p class="feature-desc">Fully responsive design. Track on your phone right in the gym — no app download needed.</p>
         </div>
-      </div>
+      </div>---->
     </div>
   </div>
 </section>
@@ -221,19 +444,17 @@
     <div class="cta-box">
       <h2 class="cta-title">READY TO TRAIN<br><span style="color:var(--fire)">SMARTER</span> WITH GYMIQ?</h2>
       <p class="cta-sub">Join thousands of athletes already crushing their goals with GymIQ. It's free to start.</p>
-      <a href="#" class="btn-primary-custom" style="font-size:1rem;padding:1rem 2.5rem;">
-        Start Training Free <i class="bi bi-arrow-right ms-2"></i>
-      </a>
+      {% if request.user.is_authenticated %}
+        <a href="{% url 'dashboard' %}" class="btn-primary-custom" style="font-size:1rem;padding:1rem 2.5rem;">
+          Go to Dashboard <i class="bi bi-arrow-right ms-2"></i>
+        </a>
+      {% else %}
+        <a href="{% url 'register' %}" class="btn-primary-custom" style="font-size:1rem;padding:1rem 2.5rem;">
+          Start Training Free <i class="bi bi-arrow-right ms-2"></i>
+        </a>
+      {% endif %}
     </div>
   </div>
 </section>
 
-<!-- FOOTER -->
-<footer>
-  <p>Built with <span>♥</span> by GymIQ · © 2026 All rights reserved.</p>
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<<script src="{% static 'js/script.js' %}"></script>
-</body>
-</html>
+{% endblock %}
