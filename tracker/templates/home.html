@@ -35,7 +35,7 @@
             <i class="bi bi-play-circle"></i> See Features
           </a>
         </div>
-        <div class="hero-stats">
+        <!----<div class="hero-stats">
           <div class="stat-item">
             <div class="stat-num">10<span>K+</span></div>
             <div class="stat-label">Active Users</div>
@@ -48,7 +48,7 @@
             <div class="stat-num">98<span>%</span></div>
             <div class="stat-label">Satisfaction</div>
           </div>
-        </div>
+        </div>--->
       </div>
 
       <div class="col-lg-6">
@@ -67,23 +67,7 @@
       </div>
     </div>
 
-    <div class="float-badge float-badge-2">
-      <div class="fb-icon"><i class="bi bi-trophy-fill"></i></div>
-      <div class="fb-text">
-        {% if is_logged_in %}
-          {% if recent_workouts %}
-            <div class="fb-val">{{ recent_workouts.0.title }}</div>
-            <div class="fb-label">Last Workout</div>
-          {% else %}
-            <div class="fb-val">No workouts yet!</div>
-            <div class="fb-label">Log your first</div>
-          {% endif %}
-        {% else %}
-          <div class="fb-val">New PR!</div>
-          <div class="fb-label">Bench Press 100kg</div>
-        {% endif %}
-      </div>
-    </div>
+
 
     <!-- Smart Dashboard Mockup -->
     <div class="dash-mockup">
@@ -259,6 +243,7 @@
     </div>
   </div>
 </section>
+
 
 <!-- CAROUSEL -->
 <section class="carousel-section">

@@ -1,10 +1,144 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact GymIQ{% endblock %}
+
+{% block content %}
+
+<div class="contact-wrapper">
+
+  <div class="row g-5">
+
+    <!-- LEFT — INFO -->
+    <div class="col-lg-5">
+      <div class="section-eyebrow">Get In Touch</div>
+      <h1 class="section-title mb-3">
+        LET'S <span style="color:var(--fire)">TALK.</span>
+      </h1>
+      <p style="color:var(--muted);font-size:0.95rem;line-height:1.8;">
+        Have a question, suggestion, or just want to say hi?
+        We'd love to hear from you. Fill in the form and we'll
+        get back to you as soon as possible.
+      </p>
+
+      <div class="contact-info-list mt-4">
+        <div class="contact-info-item">
+          <div class="contact-info-icon"><i class="bi bi-envelope-fill"></i></div>
+          <div>
+            <div class="contact-info-label">Email</div>
+            <div class="contact-info-value">hello@gymiq.app</div>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="contact-info-icon"><i class="bi bi-geo-alt-fill"></i></div>
+          <div>
+            <div class="contact-info-label">Location</div>
+            <div class="contact-info-value">Kerala, India 🇮🇳</div>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="contact-info-icon"><i class="bi bi-clock-fill"></i></div>
+          <div>
+            <div class="contact-info-label">Response Time</div>
+            <div class="contact-info-value">Within 24 hours</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="contact-socials mt-4">
+        <a href="#" class="team-social-btn"><i class="bi bi-github"></i></a>
+        <a href="#" class="team-social-btn"><i class="bi bi-linkedin"></i></a>
+        <a href="#" class="team-social-btn"><i class="bi bi-instagram"></i></a>
+        <a href="#" class="team-social-btn"><i class="bi bi-twitter-x"></i></a>
+      </div>
+    </div>
+
+    <!-- RIGHT — FORM -->
+    <div class="col-lg-7">
+      <div class="contact-form-card">
+
+        {% if success %}
+          <div class="contact-success">
+            <i class="bi bi-check-circle-fill"></i>
+            <h3>Message Sent!</h3>
+            <p>Thanks for reaching out. We'll get back to you within 24 hours.</p>
+            <a href="{% url 'home' %}" class="btn-primary-custom mt-3">
+              Back to Home
+            </a>
+          </div>
+
+        {% else %}
+
+          {% if error %}
+            <div class="gymiq-alert mb-4">
+              <i class="bi bi-exclamation-circle me-2"></i> {{ error }}
+            </div>
+          {% endif %}
+
+          <form method="POST">
+            {% csrf_token %}
+
+            <div class="form-grid-2 mb-3">
+              <div class="form-group">
+                <label class="gymiq-label">Your Name *</label>
+                <input
+                  type="text"
+                  name="name"
+                  class="gymiq-input"
+                  placeholder="John Doe"
+                  value="{{ name|default:'' }}"
+                  required
+                >
+              </div>
+              <div class="form-group">
+                <label class="gymiq-label">Email Address *</label>
+                <input
+                  type="email"
+                  name="email"
+                  class="gymiq-input"
+                  placeholder="john@example.com"
+                  value="{{ email|default:'' }}"
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="form-group mb-3">
+              <label class="gymiq-label">Subject *</label>
+              <input
+                type="text"
+                name="subject"
+                class="gymiq-input"
+                placeholder="What's this about?"
+                value="{{ subject|default:'' }}"
+                required
+              >
+            </div>
+
+            <div class="form-group mb-4">
+              <label class="gymiq-label">Message *</label>
+              <textarea
+                name="message"
+                class="gymiq-input"
+                rows="6"
+                placeholder="Tell us anything..."
+                required
+              >{{ message|default:'' }}</textarea>
+            </div>
+
+            <button type="submit" class="btn-primary-custom w-100" style="font-size:1rem;padding:1rem;">
+              <i class="bi bi-send me-2"></i> Send Message
+            </button>
+
+          </form>
+
+        {% endif %}
+
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}

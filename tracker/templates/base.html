@@ -17,6 +17,8 @@
   <a href="#" class="nav-logo">Gym<span>IQ</span></a>
   <div class="nav-links d-none d-md-flex align-items-center">
     <a href="{% url 'home'    %}">Home</a>
+      <a href="{% url 'about' %}">About</a>
+<a href="{% url 'contact' %}">Contact</a>
     {% if request.user.is_authenticated %}
       <a href="{% url 'dashboard'   %}">Dashboard</a>
       <a href="{% url 'logout'   %}" class="btn-nav">Logout</a>
