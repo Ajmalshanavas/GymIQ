@@ -80,6 +80,55 @@
 
   </div>
 
+  <!-- MINI CHARTS ROW -->
+  <div class="dashboard-grid mb-4">
+
+    <!-- TODAY'S MACROS MINI CHART -->
+    <div class="dashboard-card">
+      <div class="dashboard-card-header">
+        <h3 class="dashboard-card-title">TODAY'S MACROS</h3>
+        <a href="{% url 'progress' %}" class="dashboard-card-link">Full View →</a>
+      </div>
+      {% if total_protein or total_carbs or total_fat %}
+        <div style="width:180px; height:180px; margin:0 auto;">
+          <canvas id="dashMacroChart"></canvas>
+        </div>
+        <div class="macro-legend mt-3">
+          <div class="macro-legend-item">
+            <div class="macro-legend-dot" style="background:#4fc3f7;"></div>
+            <span>P: {{ total_protein }}g</span>
+          </div>
+          <div class="macro-legend-item">
+            <div class="macro-legend-dot" style="background:#81c784;"></div>
+            <span>C: {{ total_carbs }}g</span>
+          </div>
+          <div class="macro-legend-item">
+            <div class="macro-legend-dot" style="background:#ffb74d;"></div>
+            <span>F: {{ total_fat }}g</span>
+          </div>
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <i class="bi bi-pie-chart"></i>
+          <p>Log meals to see macro breakdown</p>
+          <a href="{% url 'log_meal' %}" class="btn-primary-custom mt-2" style="font-size:0.82rem;padding:0.5rem 1.2rem;">
+            + Log Meal
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- LAST 7 DAYS VOLUME MINI CHART -->
+    <div class="dashboard-card">
+      <div class="dashboard-card-header">
+        <h3 class="dashboard-card-title">LAST 7 DAYS VOLUME</h3>
+        <a href="{% url 'progress' %}" class="dashboard-card-link">Full View →</a>
+      </div>
+      <canvas id="dashVolumeChart"></canvas>
+    </div>
+
+  </div>
+
   <!-- MAIN CONTENT -->
   <div class="dashboard-grid">
 
@@ -87,7 +136,7 @@
     <div class="dashboard-card">
       <div class="dashboard-card-header">
         <h3 class="dashboard-card-title">RECENT WORKOUTS</h3>
-        <a href="{% url 'log_workout' %}"  class="dashboard-card-link" style="color: var(--fire)";>
+        <a href="{% url 'log_workout' %}" class="dashboard-card-link" style="color: var(--fire);">
           + Add New
         </a>
       </div>
@@ -119,10 +168,9 @@
                  title="Delete workout">
                 <i class="bi bi-trash"></i>
               </a>
-                <a href="{% url 'edit_workout' workout.id %}"
+              <a href="{% url 'edit_workout' workout.id %}"
                  class="edit-btn"
-
-                 title="edit workout">
+                 title="Edit workout">
                 <i class="bi bi-pencil"></i>
               </a>
             </div>
@@ -144,43 +192,43 @@
     <div class="dashboard-card">
       <div class="dashboard-card-header">
         <h3 class="dashboard-card-title">TODAY'S NUTRITION</h3>
-        <a href="{% url 'log_meal' %}" class="dashboard-card-link" style="color: var(--fire)";>
+        <a href="{% url 'log_meal' %}" class="dashboard-card-link" style="color: var(--fire);">
           + Add Meal
         </a>
       </div>
 
       {% if todays_nutrition %}
         {% for log in todays_nutrition %}
-  <div class="nutrition-item">
-    <div class="nutrition-item-left">
-      <div class="nutrition-item-icon">
-        <i class="bi bi-egg-fried"></i>
-      </div>
-      <div>
-        <div class="nutrition-item-name">{{ log.meal_name }}</div>
-        <div class="nutrition-item-detail">
-          P: {{ log.protein }}g ·
-          C: {{ log.carbs }}g ·
-          F: {{ log.fat }}g
-        </div>
-      </div>
-    </div>
-    <div class="nutrition-item-right">
-      <div class="nutrition-item-calories">{{ log.calories }} kcal</div>
-      <a href="{% url 'edit_meal' log.id %}"
-         class="edit-btn"
-         title="Edit meal">
-        <i class="bi bi-pencil"></i>
-      </a>
-      <a href="{% url 'delete_meal' log.id %}"
-         class="delete-btn"
-         onclick="return confirm('Delete {{ log.meal_name }}? This cannot be undone.')"
-         title="Delete meal">
-        <i class="bi bi-trash"></i>
-      </a>
-    </div>
-  </div>
-  {% endfor %}
+          <div class="nutrition-item">
+            <div class="nutrition-item-left">
+              <div class="nutrition-item-icon">
+                <i class="bi bi-egg-fried"></i>
+              </div>
+              <div>
+                <div class="nutrition-item-name">{{ log.meal_name }}</div>
+                <div class="nutrition-item-detail">
+                  P: {{ log.protein }}g ·
+                  C: {{ log.carbs }}g ·
+                  F: {{ log.fat }}g
+                </div>
+              </div>
+            </div>
+            <div class="nutrition-item-right">
+              <div class="nutrition-item-calories">{{ log.calories }} kcal</div>
+              <a href="{% url 'edit_meal' log.id %}"
+                 class="edit-btn"
+                 title="Edit meal">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <a href="{% url 'delete_meal' log.id %}"
+                 class="delete-btn"
+                 onclick="return confirm('Delete {{ log.meal_name }}? This cannot be undone.')"
+                 title="Delete meal">
+                <i class="bi bi-trash"></i>
+              </a>
+            </div>
+          </div>
+        {% endfor %}
 
         <!-- Daily Total -->
         <div class="nutrition-total">
@@ -205,5 +253,99 @@
   </div>
 
 </div>
+
+<script>
+  Chart.defaults.color = '#888';
+  Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+  Chart.defaults.font.family = 'DM Sans';
+
+  // ── MACRO DOUGHNUT CHART ──────────────────────────────────
+  const dashProtein = {{ total_protein }};
+  const dashCarbs = {{ total_carbs }};
+  const dashFat = {{ total_fat }};
+
+  const macroCanvas = document.getElementById('dashMacroChart');
+  if (macroCanvas && (dashProtein || dashCarbs || dashFat)) {
+    new Chart(macroCanvas, {
+      type: 'doughnut',
+      data: {
+        labels: ['Protein', 'Carbs', 'Fat'],
+        datasets: [{
+          data: [dashProtein, dashCarbs, dashFat],
+          backgroundColor: ['#4fc3f7', '#81c784', '#ffb74d'],
+          borderColor: '#141414',
+          borderWidth: 3,
+          hoverOffset: 8,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        cutout: '70%',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1a1a1a',
+            borderColor: 'rgba(255,255,255,0.1)',
+            borderWidth: 1,
+            callbacks: {
+              label: ctx => ` ${ctx.parsed}g`
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // ── VOLUME BAR CHART ──────────────────────────────────────
+  const last7Volume = {{ last_7_volume|safe }};
+  const volumeCanvas = document.getElementById('dashVolumeChart');
+  if (volumeCanvas) {
+    new Chart(volumeCanvas, {
+      type: 'bar',
+      data: {
+        labels: last7Volume.map(d => d.day),
+        datasets: [{
+          label: 'Volume (kg)',
+          data: last7Volume.map(d => d.volume),
+          backgroundColor: last7Volume.map((d, i) =>
+            i === last7Volume.length - 1 ? '#FF4D00' : 'rgba(255,77,0,0.3)'
+          ),
+          borderRadius: 4,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1a1a1a',
+            borderColor: 'rgba(255,77,0,0.3)',
+            borderWidth: 1,
+            callbacks: {
+              label: ctx => ` ${ctx.parsed.y} kg`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#888' }
+          },
+          y: {
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            ticks: {
+              color: '#888',
+              callback: val => val + ' kg'
+            },
+            beginAtZero: true,
+          }
+        }
+      }
+    });
+  }
+</script>
 
 {% endblock %}

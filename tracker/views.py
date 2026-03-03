@@ -1,8 +1,13 @@
 from django.shortcuts import render, redirect
+from django.db import models as django_models
 from tracker.models import Workout, NutritionLog, Exercise, Set, ContactMessage
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 import zoneinfo
+import json
+from django.db.models import Sum, Max, F
+from datetime import timedelta
+
 
 # IST timezone helper
 def get_ist_today():
@@ -121,6 +126,20 @@ def dashboard(request):
     except:
         pass
 
+    last_7_volume = []
+    for i in range(6, -1, -1):
+        day = today - timedelta(days=i)
+        vol = Set.objects.filter(
+            exercise__workout__user=user,
+            exercise__workout__date=day
+        ).aggregate(
+            total=Sum(F('reps') * F('weight'))
+        )['total'] or 0
+        last_7_volume.append({
+            'day': day.strftime('%a'),
+            'volume': round(float(vol), 1),
+        })
+
     context = {
         'user': user,
         'recent_workouts': recent_workouts,
@@ -133,6 +152,7 @@ def dashboard(request):
         'streak': streak,
         'bmi': bmi,
         'bmi_category': bmi_category,
+        'last_7_volume': json.dumps(last_7_volume),
     }
     return render(request, 'dashboard.html', context)
 
@@ -489,3 +509,114 @@ def contact(request):
         })
 
     return render(request, 'contact.html')
+
+def progress(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    user = request.user
+    today = get_ist_today()
+
+    # ── STRENGTH PROGRESS ──────────────────────────────────────
+    # Get all unique exercise names for this user
+    exercise_names = Exercise.objects.filter(
+        workout__user=user
+    ).values_list('name', flat=True).distinct().order_by('name')
+
+    # Get selected exercise from query param
+    selected_exercise = request.GET.get('exercise', '')
+    if not selected_exercise and exercise_names:
+        selected_exercise = list(exercise_names)[0]
+
+    # Get max weight per workout date for selected exercise
+    strength_data = []
+    if selected_exercise:
+        workouts_with_exercise = Exercise.objects.filter(
+            workout__user=user,
+            name__iexact=selected_exercise
+        ).order_by('workout__date')
+
+        for ex in workouts_with_exercise:
+            max_weight = ex.sets.aggregate(Max('weight'))['weight__max']
+            if max_weight:
+                strength_data.append({
+                    'date': str(ex.workout.date),
+                    'weight': float(max_weight),
+                })
+
+    # ── WEEKLY VOLUME ──────────────────────────────────────────
+    # Last 8 weeks
+    weekly_volume = []
+    for i in range(7, -1, -1):
+        week_start = today - timedelta(days=today.weekday() + 7 * i)
+        week_end = week_start + timedelta(days=6)
+        volume = Set.objects.filter(
+            exercise__workout__user=user,
+            exercise__workout__date__range=[week_start, week_end]
+        ).aggregate(
+            total=Sum(django_models.F('reps') * django_models.F('weight'))
+        )['total'] or 0
+
+        weekly_volume.append({
+            'week': week_start.strftime('%b %d'),
+            'volume': round(float(volume), 1),
+        })
+
+    # ── NUTRITION MACROS (last 7 days) ─────────────────────────
+    last_7_days = today - timedelta(days=6)
+    nutrition_logs = NutritionLog.objects.filter(
+        user=user,
+        date__range=[last_7_days, today]
+    )
+
+    total_protein = float(nutrition_logs.aggregate(Sum('protein'))['protein__sum'] or 0)
+    total_carbs = float(nutrition_logs.aggregate(Sum('carbs'))['carbs__sum'] or 0)
+    total_fat = float(nutrition_logs.aggregate(Sum('fat'))['fat__sum'] or 0)
+
+    # ── WORKOUT FREQUENCY (last 30 days) ───────────────────────
+    workout_dates = list(
+        Workout.objects.filter(
+            user=user,
+            date__range=[today - timedelta(days=29), today]
+        ).values_list('date', flat=True)
+    )
+    workout_dates_str = [str(d) for d in workout_dates]
+
+    # ── DASHBOARD MINI CHARTS DATA ─────────────────────────────
+    # Today's macros for dashboard pie chart
+    todays_logs = NutritionLog.objects.filter(user=user, date=today)
+    dash_protein = float(todays_logs.aggregate(Sum('protein'))['protein__sum'] or 0)
+    dash_carbs = float(todays_logs.aggregate(Sum('carbs'))['carbs__sum'] or 0)
+    dash_fat = float(todays_logs.aggregate(Sum('fat'))['fat__sum'] or 0)
+
+    # Last 7 days volume for dashboard bar chart
+    last_7_volume = []
+    for i in range(6, -1, -1):
+        day = today - timedelta(days=i)
+        vol = Set.objects.filter(
+            exercise__workout__user=user,
+            exercise__workout__date=day
+        ).aggregate(
+            total=Sum(django_models.F('reps') * django_models.F('weight'))
+        )['total'] or 0
+        last_7_volume.append({
+            'day': day.strftime('%a'),
+            'volume': round(float(vol), 1),
+        })
+
+    context = {
+        'exercise_names': exercise_names,
+        'selected_exercise': selected_exercise,
+        'strength_data': json.dumps(strength_data),
+        'weekly_volume': json.dumps(weekly_volume),
+        'total_protein': round(total_protein, 1),
+        'total_carbs': round(total_carbs, 1),
+        'total_fat': round(total_fat, 1),
+        'workout_dates': json.dumps(workout_dates_str),
+        'today': str(today),
+        'dash_protein': dash_protein,
+        'dash_carbs': dash_carbs,
+        'dash_fat': dash_fat,
+        'last_7_volume': json.dumps(last_7_volume),
+    }
+    return render(request, 'progress.html', context)
