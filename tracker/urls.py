@@ -11,4 +11,6 @@ path('delete-meal/<int:meal_id>/', views.delete_meal, name='delete_meal'),
 path('workout/<int:workout_id>/', views.workout_detail, name='workout_detail'),
 path('workout/<int:workout_id>/edit/', views.edit_workout, name='edit_workout'),
 path('edit-meal/<int:meal_id>/', views.edit_meal, name='edit_meal'),
+path('about/', views.about, name='about'),
+path('contact/', views.contact, name='contact')
 ]

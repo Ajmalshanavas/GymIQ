@@ -1,0 +1,297 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-wrapper">
+
+  <!-- HEADER -->
+  <div class="dashboard-header">
+    <div>
+      <h1 class="dashboard-title">MY <span>PROFILE</span></h1>
+      <p class="dashboard-sub">Manage your account and personal details</p>
+    </div>
+    <a href="{% url 'dashboard' %}" class="btn-ghost">
+      <i class="bi bi-arrow-left"></i> Dashboard
+    </a>
+  </div>
+
+  {% if success %}
+    <div class="gymiq-alert-success mb-4">
+      <i class="bi bi-check-circle me-2"></i> {{ success }}
+    </div>
+  {% endif %}
+
+  {% if error %}
+    <div class="gymiq-alert mb-4">
+      <i class="bi bi-exclamation-circle me-2"></i> {{ error }}
+    </div>
+  {% endif %}
+
+  <div class="profile-grid">
+
+    <!-- LEFT — AVATAR + STATS -->
+    <div>
+
+      <!-- Avatar Card -->
+      <div class="dashboard-card mb-4 text-center">
+        <div class="profile-avatar-container">
+          {% if profile.profile_picture %}
+            <img src="{{ profile.profile_picture.url }}"
+                 alt="Profile Picture"
+                 class="profile-avatar-img">
+          {% else %}
+            <div class="profile-avatar-placeholder">
+              {{ user.username|first|upper }}
+            </div>
+          {% endif %}
+        </div>
+        <div class="profile-name mt-3">{{ user.username }}</div>
+        <div class="profile-email">{{ user.email }}</div>
+        {% if profile.fitness_goal %}
+          <div class="profile-goal-badge mt-2">
+            <i class="bi bi-bullseye"></i> {{ profile.fitness_goal }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Stats Card -->
+      <div class="dashboard-card mb-4">
+        <div class="dashboard-card-header">
+          <h3 class="dashboard-card-title">MY STATS</h3>
+        </div>
+        <div class="profile-stats-list">
+          <div class="profile-stat-row">
+            <div class="profile-stat-left">
+              <i class="bi bi-person"></i> Age
+            </div>
+            <div class="profile-stat-value">
+              {% if profile.age %}{{ profile.age }} yrs{% else %}--{% endif %}
+            </div>
+          </div>
+          <div class="profile-stat-row">
+            <div class="profile-stat-left">
+              <i class="bi bi-graph-up"></i> Weight
+            </div>
+            <div class="profile-stat-value">
+              {% if profile.weight %}{{ profile.weight }} kg{% else %}--{% endif %}
+            </div>
+          </div>
+          <div class="profile-stat-row">
+            <div class="profile-stat-left">
+              <i class="bi bi-rulers"></i> Height
+            </div>
+            <div class="profile-stat-value">
+              {% if profile.height %}{{ profile.height }} cm{% else %}--{% endif %}
+            </div>
+          </div>
+          <div class="profile-stat-row">
+            <div class="profile-stat-left">
+              <i class="bi bi-heart-pulse"></i> BMI
+            </div>
+            <div class="profile-stat-value" style="color:var(--fire);">
+              {% if profile.get_bmi %}
+                {{ profile.get_bmi }}
+                {% with bmi=profile.get_bmi %}
+                  {% if bmi < 18.5 %}(Underweight)
+                  {% elif bmi < 25 %}(Normal)
+                  {% elif bmi < 30 %}(Overweight)
+                  {% else %}(Obese){% endif %}
+                {% endwith %}
+              {% else %}--{% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Change Password Link -->
+      <div class="dashboard-card">
+        <div class="dashboard-card-header">
+          <h3 class="dashboard-card-title">SECURITY</h3>
+        </div>
+        <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;">
+          Keep your account secure by using a strong password.
+        </p>
+        <a href="{% url 'change_password' %}" class="btn-ghost" style="font-size:0.85rem;padding:0.6rem 1.2rem;">
+          <i class="bi bi-lock"></i> Change Password
+        </a>
+      </div>
+
+    </div>
+
+    <!-- RIGHT — EDIT FORM -->
+    <div>
+      <div class="dashboard-card">
+        <div class="dashboard-card-header">
+          <h3 class="dashboard-card-title">EDIT PROFILE</h3>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <!-- ACCOUNT INFO -->
+          <div class="profile-section-label">Account Info</div>
+          <div class="form-grid-2 mb-3">
+            <div class="form-group">
+              <label class="gymiq-label">Username *</label>
+              <input type="text"
+                     name="username"
+                     class="gymiq-input"
+                     value="{{ user.username }}"
+                     required>
+            </div>
+            <div class="form-group">
+              <label class="gymiq-label">Email *</label>
+              <input type="email"
+                     name="email"
+                     class="gymiq-input"
+                     value="{{ user.email }}"
+                     required>
+            </div>
+          </div>
+
+          <!-- PERSONAL INFO -->
+          <div class="profile-section-label">Personal Info</div>
+          <div class="form-grid-2 mb-3">
+            <div class="form-group">
+              <label class="gymiq-label">Age</label>
+              <input type="number"
+                     name="age"
+                     class="gymiq-input"
+                     value="{{ profile.age|default:'' }}"
+                     min="1" max="120">
+            </div>
+            <div class="form-group">
+              <label class="gymiq-label">Fitness Goal</label>
+              <select name="fitness_goal" class="gymiq-input">
+                <option value="">-- Select Goal --</option>
+                <option value="Lose Weight" {% if profile.fitness_goal == 'Lose Weight' %}selected{% endif %}>Lose Weight</option>
+                <option value="Build Muscle" {% if profile.fitness_goal == 'Build Muscle' %}selected{% endif %}>Build Muscle</option>
+                <option value="Maintain Fitness" {% if profile.fitness_goal == 'Maintain Fitness' %}selected{% endif %}>Maintain Fitness</option>
+                <option value="Increase Strength" {% if profile.fitness_goal == 'Increase Strength' %}selected{% endif %}>Increase Strength</option>
+                <option value="Improve Endurance" {% if profile.fitness_goal == 'Improve Endurance' %}selected{% endif %}>Improve Endurance</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- BODY METRICS -->
+          <div class="profile-section-label">Body Metrics</div>
+          <div class="form-grid-2 mb-3">
+            <div class="form-group">
+              <label class="gymiq-label">Weight (kg)</label>
+              <input type="number"
+                     name="weight"
+                     class="gymiq-input"
+                     value="{{ profile.weight|default:'' }}"
+                     step="0.1" min="0">
+            </div>
+            <div class="form-group">
+              <label class="gymiq-label">Height (cm)</label>
+              <input type="number"
+                     name="height"
+                     class="gymiq-input"
+                     value="{{ profile.height|default:'' }}"
+                     step="0.1" min="0">
+            </div>
+          </div>
+
+          <!-- PROFILE PICTURE -->
+          <div class="profile-section-label">Profile Picture</div>
+          <div class="form-group mb-4">
+
+            {% if profile.profile_picture %}
+              <div class="current-image-container mb-2" id="current-pic-container">
+                <img src="{{ profile.profile_picture.url }}"
+                     alt="Current"
+                     class="current-image-preview">
+                <div class="current-image-actions">
+                  <span class="gymiq-label">Current photo</span>
+                  <button type="button" class="delete-btn" id="remove-pic-btn">
+                    <i class="bi bi-trash"></i> Remove
+                  </button>
+                </div>
+              </div>
+              <input type="hidden" name="remove_picture" id="remove-picture-input" value="">
+            {% endif %}
+
+            <div class="image-upload-area" id="pic-upload-area">
+              <input type="file"
+                     name="profile_picture"
+                     id="pic-input"
+                     accept="image/*"
+                     style="display:none;">
+              <div class="image-upload-placeholder" id="pic-placeholder"
+                   onclick="document.getElementById('pic-input').click()">
+                <i class="bi bi-camera"></i>
+                <span>{% if profile.profile_picture %}Replace photo{% else %}Upload photo{% endif %}</span>
+                <small>JPG, PNG up to 5MB</small>
+              </div>
+              <div class="image-preview-container" id="pic-preview-container" style="display:none;">
+                <img id="pic-preview" src="" alt="Preview">
+                <button type="button" class="remove-image-btn" id="cancel-pic-btn">
+                  <i class="bi bi-x-circle-fill"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary-custom w-100" style="font-size:1rem;padding:1rem;">
+            <i class="bi bi-check-circle me-2"></i> Save Profile
+          </button>
+
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  // Profile picture preview
+  const picInput = document.getElementById('pic-input');
+  const picPlaceholder = document.getElementById('pic-placeholder');
+  const picPreviewContainer = document.getElementById('pic-preview-container');
+  const picPreview = document.getElementById('pic-preview');
+  const cancelPicBtn = document.getElementById('cancel-pic-btn');
+  const removePicBtn = document.getElementById('remove-pic-btn');
+  const currentPicContainer = document.getElementById('current-pic-container');
+  const removePictureInput = document.getElementById('remove-picture-input');
+
+  if (picInput) {
+    picInput.addEventListener('change', function() {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          picPreview.src = e.target.result;
+          picPlaceholder.style.display = 'none';
+          picPreviewContainer.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  if (cancelPicBtn) {
+    cancelPicBtn.addEventListener('click', function() {
+      picInput.value = '';
+      picPreview.src = '';
+      picPlaceholder.style.display = 'flex';
+      picPreviewContainer.style.display = 'none';
+    });
+  }
+
+  if (removePicBtn) {
+    removePicBtn.addEventListener('click', function() {
+      if (confirm('Remove your profile picture?')) {
+        currentPicContainer.style.display = 'none';
+        removePictureInput.value = 'yes';
+      }
+    });
+  }
+</script>
+
+{% endblock %}

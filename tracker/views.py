@@ -1,7 +1,13 @@
-from django.shortcuts import render,redirect
-from tracker.models import Workout,NutritionLog,Exercise, Set,ContactMessage
+from django.shortcuts import render, redirect
+from tracker.models import Workout, NutritionLog, Exercise, Set, ContactMessage
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
+import zoneinfo
+
+# IST timezone helper
+def get_ist_today():
+    ist = zoneinfo.ZoneInfo('Asia/Kolkata')
+    return timezone.now().astimezone(ist).date()
 
 
 # Create your views here.
@@ -10,7 +16,7 @@ def home(request):
 
     if request.user.is_authenticated:
         user = request.user
-        today = timezone.now().date()
+        today = get_ist_today()
 
         # Get last 2 workouts
         recent_workouts = Workout.objects.filter(
@@ -58,7 +64,7 @@ def dashboard(request):
         return redirect('login')
 
     user = request.user
-    today = timezone.now().date()
+    today = get_ist_today()
 
     # Get recent workouts (last 5)
     recent_workouts = Workout.objects.filter(
@@ -130,23 +136,24 @@ def dashboard(request):
     }
     return render(request, 'dashboard.html', context)
 
+
 def log_workout(request):
     if not request.user.is_authenticated:
         return redirect('login')
 
     user = request.user
+    today = get_ist_today()
 
     if request.method == 'POST':
         title = request.POST.get('title', '').strip()
         date = request.POST.get('date', '').strip()
         notes = request.POST.get('notes', '').strip()
-        image = request.FILES.get('image')  # get uploaded image
+        image = request.FILES.get('image')
 
         if not title or not date:
-            error = "Please fill in the workout title and date."
             return render(request, 'log_workout.html', {
-                'error': error,
-                'today': timezone.now().date(),
+                'error': 'Please fill in the workout title and date.',
+                'today': today,
             })
 
         # Create the workout
@@ -155,7 +162,7 @@ def log_workout(request):
             title=title,
             date=date,
             notes=notes,
-            image=image  # save image
+            image=image
         )
 
         # Loop through exercises
@@ -190,9 +197,11 @@ def log_workout(request):
         return redirect('dashboard')
 
     context = {
-        'today': timezone.now().date(),
+        'today': today,
     }
     return render(request, 'log_workout.html', context)
+
+
 def delete_workout(request, workout_id):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -204,41 +213,32 @@ def delete_workout(request, workout_id):
         pass
 
     return redirect('dashboard')
+
+
 def log_meal(request):
     if not request.user.is_authenticated:
         return redirect('login')
 
     user = request.user
+    today = get_ist_today()
 
     if request.method == 'POST':
         meal_name = request.POST.get('meal_name', '').strip()
-        date = request.POST.get('date', '').strip()
         calories = request.POST.get('calories', '').strip()
         protein = request.POST.get('protein', '').strip()
         carbs = request.POST.get('carbs', '').strip()
         fat = request.POST.get('fat', '').strip()
 
-        # Debug — print what we received
-        print("meal_name:", meal_name)
-        print("date:", date)
-        print("calories:", calories)
-        print("protein:", protein)
-        print("carbs:", carbs)
-        print("fat:", fat)
-
-        # Basic validation
-        if not meal_name or not date or not calories:
-            error = "Please fill in meal name, date and calories."
+        if not meal_name or not calories:
             return render(request, 'log_meal.html', {
-                'error': error,
-                'today': timezone.now().date(),
+                'error': 'Please fill in meal name and calories.',
+                'today': today,
             })
 
-        # Save to database
         NutritionLog.objects.create(
             user=user,
             meal_name=meal_name,
-            date=date,
+            date=today,  # ← automatically set to IST today
             calories=int(calories),
             protein=float(protein) if protein else 0,
             carbs=float(carbs) if carbs else 0,
@@ -248,19 +248,23 @@ def log_meal(request):
         return redirect('dashboard')
 
     context = {
-        'today': timezone.now().date(),
+        'today': today,
     }
     return render(request, 'log_meal.html', context)
+
 
 def delete_meal(request, meal_id):
     if not request.user.is_authenticated:
         return redirect('login')
+
     try:
         meal = NutritionLog.objects.get(id=meal_id, user=request.user)
         meal.delete()
     except NutritionLog.DoesNotExist:
         pass
+
     return redirect('dashboard')
+
 
 # Calorie burn lookup table
 CALORIE_BURN_PER_SET = {
@@ -289,10 +293,10 @@ CALORIE_BURN_PER_SET = {
     'rowing': 7,
 }
 
+
 def get_calorie_burn(exercise_name, num_sets):
-    # Look up the exercise name (case insensitive)
     name_lower = exercise_name.lower().strip()
-    calories_per_set = CALORIE_BURN_PER_SET.get(name_lower, 3)  # default 3 if not found
+    calories_per_set = CALORIE_BURN_PER_SET.get(name_lower, 3)
     return calories_per_set * num_sets
 
 
@@ -300,16 +304,13 @@ def workout_detail(request, workout_id):
     if not request.user.is_authenticated:
         return redirect('login')
 
-    # Get workout — make sure it belongs to this user
     try:
         workout = Workout.objects.get(id=workout_id, user=request.user)
     except Workout.DoesNotExist:
         return redirect('dashboard')
 
-    # Get all exercises for this workout
     exercises = workout.exercises.all()
 
-    # Build exercise data with calorie predictions
     exercise_data = []
     total_calories_burned = 0
 
@@ -337,6 +338,8 @@ def edit_workout(request, workout_id):
     if not request.user.is_authenticated:
         return redirect('login')
 
+    today = get_ist_today()
+
     try:
         workout = Workout.objects.get(id=workout_id, user=request.user)
     except Workout.DoesNotExist:
@@ -350,32 +353,27 @@ def edit_workout(request, workout_id):
         remove_image = request.POST.get('remove_image')
 
         if not title or not date:
-            error = "Please fill in the workout title and date."
             return render(request, 'edit_workout.html', {
                 'workout': workout,
-                'error': error,
+                'error': 'Please fill in the workout title and date.',
+                'today': today,
             })
 
-        # Update basic fields
         workout.title = title
         workout.date = date
         workout.notes = notes
 
-        # Handle image
         if remove_image:
-            # User wants to remove existing image
             if workout.image:
                 workout.image.delete(save=False)
             workout.image = None
         elif new_image:
-            # User uploaded a new image
             if workout.image:
                 workout.image.delete(save=False)
             workout.image = new_image
 
         workout.save()
 
-        # Delete existing exercises and recreate
         workout.exercises.all().delete()
 
         exercise_index = 0
@@ -411,12 +409,16 @@ def edit_workout(request, workout_id):
     context = {
         'workout': workout,
         'exercises': workout.exercises.all(),
+        'today': today,
     }
     return render(request, 'edit_workout.html', context)
+
 
 def edit_meal(request, meal_id):
     if not request.user.is_authenticated:
         return redirect('login')
+
+    today = get_ist_today()
 
     try:
         meal = NutritionLog.objects.get(id=meal_id, user=request.user)
@@ -432,13 +434,12 @@ def edit_meal(request, meal_id):
         fat = request.POST.get('fat', '').strip()
 
         if not meal_name or not date or not calories:
-            error = "Please fill in meal name, date and calories."
             return render(request, 'edit_meal.html', {
                 'meal': meal,
-                'error': error,
+                'error': 'Please fill in meal name, date and calories.',
+                'today': today,
             })
 
-        # Update the meal
         meal.meal_name = meal_name
         meal.date = date
         meal.calories = int(calories)
@@ -451,8 +452,10 @@ def edit_meal(request, meal_id):
 
     context = {
         'meal': meal,
+        'today': today,
     }
     return render(request, 'edit_meal.html', context)
+
 
 def about(request):
     return render(request, 'about.html')

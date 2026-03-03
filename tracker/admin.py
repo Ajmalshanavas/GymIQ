@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Workout, Exercise, Set, NutritionLog
+from .models import Workout, Exercise, Set, NutritionLog,ContactMessage
 
 
 class SetInline(admin.TabularInline):
@@ -46,6 +46,20 @@ class NutritionLogAdmin(admin.ModelAdmin):
     search_fields = ['user__email', 'meal_name']
     list_filter = ['date']
 
+class ContactMessageAdmin(admin.ModelAdmin):
+    list_display = ['name', 'email', 'subject', 'created_at', 'is_read']
+    list_filter = ['is_read', 'created_at']
+    search_fields = ['name', 'email', 'subject']
+    readonly_fields = ['name', 'email', 'subject', 'message', 'created_at']
+    ordering = ['-created_at']
+
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        msg = self.get_object(request, object_id)
+        if msg and not msg.is_read:
+            msg.is_read = True
+            msg.save()
+        return super().change_view(request, object_id, form_url, extra_context)
 
 admin.site.register(Workout, WorkoutAdmin)
 admin.site.register(Exercise, ExerciseAdmin)

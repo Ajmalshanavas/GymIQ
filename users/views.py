@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from .forms import RegisterForm
 from .models import Profile
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 
 
@@ -11,16 +11,12 @@ def register(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            # Auto-create profile when user registers
-
             messages.success(request, 'Account created! Please login.')
             return redirect('login')
     else:
         form = RegisterForm()
-    return render(request, 'users/register.html', {'form': form})
+    return render(request, 'register.html', {'form': form})
 
-
-from django.shortcuts import render
 
 def user_login(request):
     if request.method == 'POST':
@@ -29,11 +25,116 @@ def user_login(request):
         user = authenticate(request, username=email, password=password)
         if user is not None:
             login(request, user)
-            return redirect('dashboard')  # we'll create this later
+            return redirect('dashboard')
         else:
             messages.error(request, 'Invalid email or password.')
-    return render(request, 'users/login.html')
+    return render(request, 'login.html')
+
 
 def user_logout(request):
     logout(request)
     return redirect('home')
+
+
+def profile(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    user = request.user
+
+    # Get or create profile safely
+    profile_obj, created = Profile.objects.get_or_create(user=user)
+
+    if request.method == 'POST':
+        # Update user info
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+
+        # Update profile info
+        age = request.POST.get('age', '').strip()
+        weight = request.POST.get('weight', '').strip()
+        height = request.POST.get('height', '').strip()
+        fitness_goal = request.POST.get('fitness_goal', '').strip()
+        profile_picture = request.FILES.get('profile_picture')
+        remove_picture = request.POST.get('remove_picture')
+
+        # Validate
+        if not username or not email:
+            return render(request, 'profile.html', {
+                'profile': profile_obj,
+                'error': 'Username and email are required.',
+            })
+
+        # Update user
+        user.username = username
+        user.email = email
+        user.save()
+
+        # Update profile
+        profile_obj.age = int(age) if age else None
+        profile_obj.weight = float(weight) if weight else None
+        profile_obj.height = float(height) if height else None
+        profile_obj.fitness_goal = fitness_goal
+
+        # Handle profile picture
+        if remove_picture:
+            if profile_obj.profile_picture:
+                profile_obj.profile_picture.delete(save=False)
+            profile_obj.profile_picture = None
+        elif profile_picture:
+            if profile_obj.profile_picture:
+                profile_obj.profile_picture.delete(save=False)
+            profile_obj.profile_picture = profile_picture
+
+        profile_obj.save()
+
+        return render(request, 'profile.html', {
+            'profile': profile_obj,
+            'success': 'Profile updated successfully!',
+        })
+
+    context = {
+        'profile': profile_obj,
+    }
+    return render(request, 'profile.html', context)
+
+
+def change_password(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    if request.method == 'POST':
+        current_password = request.POST.get('current_password', '').strip()
+        new_password = request.POST.get('new_password', '').strip()
+        confirm_password = request.POST.get('confirm_password', '').strip()
+
+        # Validate current password
+        if not request.user.check_password(current_password):
+            return render(request, 'users/change_password.html', {
+                'error': 'Current password is incorrect.'
+            })
+
+        # Validate new passwords match
+        if new_password != confirm_password:
+            return render(request, 'users/change_password.html', {
+                'error': 'New passwords do not match.'
+            })
+
+        # Validate length
+        if len(new_password) < 8:
+            return render(request, 'users/change_password.html', {
+                'error': 'Password must be at least 8 characters.'
+            })
+
+        # Update password
+        request.user.set_password(new_password)
+        request.user.save()
+
+        # Keep user logged in after password change
+        update_session_auth_hash(request, request.user)
+
+        return render(request, 'users/change_password.html', {
+            'success': 'Password changed successfully!'
+        })
+
+    return render(request, 'change_password.html')
