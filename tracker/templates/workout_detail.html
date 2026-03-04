@@ -28,6 +28,12 @@
     </div>
   </div>
 
+    {% if workout.image %}
+  <div class="workout-image-container mb-4">
+    <img src="{{ workout.image.url }}" alt="{{ workout.title }}" class="workout-image">
+  </div>
+  {% endif %}
+
   <!-- WORKOUT SUMMARY CARDS -->
   <div class="stats-grid mb-4">
     <div class="stat-card">

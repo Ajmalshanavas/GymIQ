@@ -1824,3 +1824,292 @@ footer span { color: var(--fire); }
   height: 14px;
   flex-shrink: 0;
 }
+
+/* ── PERSONAL RECORDS ── */
+.pr-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.pr-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.2rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.pr-item:hover {
+  border-color: rgba(255,77,0,0.3);
+  background: rgba(255,77,0,0.04);
+}
+
+.pr-item-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pr-rank {
+  width: 40px;
+  height: 40px;
+  background: rgba(255,77,0,0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fire);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.pr-exercise-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.2rem;
+  letter-spacing: 0.05em;
+  color: var(--light);
+}
+
+.pr-detail {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+
+.pr-weight {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem;
+  color: var(--fire);
+  line-height: 1;
+}
+
+.pr-weight span {
+  font-size: 1rem;
+  color: var(--muted);
+  margin-left: 2px;
+}
+
+/* ── PR BANNER ── */
+.pr-banner {
+  background: linear-gradient(135deg, rgba(255,77,0,0.1), rgba(255,77,0,0.05));
+  border: 1px solid rgba(255,77,0,0.2);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.pr-banner-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  color: var(--fire);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.pr-banner-items {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.pr-banner-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255,255,255,0.05);
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.82rem;
+}
+
+.pr-banner-exercise {
+  color: var(--muted);
+}
+
+.pr-banner-weight {
+  color: var(--fire);
+  font-weight: 600;
+}
+
+.pr-banner-link {
+  color: var(--fire);
+  font-size: 0.82rem;
+  text-decoration: none;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.pr-banner-link:hover {
+  color: var(--fire-glow);
+}
+/* ── WORKOUT DETAIL PAGE ── */
+.detail-exercise-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.detail-exercise-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.detail-exercise-icon {
+  width: 44px;
+  height: 44px;
+  background: rgba(255,77,0,0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fire);
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.detail-exercise-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem;
+  letter-spacing: 0.05em;
+  color: var(--light);
+}
+
+.detail-exercise-note {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+
+.detail-calorie-badge {
+  background: rgba(255,77,0,0.1);
+  border: 1px solid rgba(255,77,0,0.2);
+  color: var(--fire);
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.sets-detail-table {
+  background: rgba(255,255,255,0.02);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.sets-detail-header {
+  display: grid;
+  grid-template-columns: 60px 1fr 1fr 1fr;
+  padding: 0.6rem 1rem;
+  background: rgba(255,255,255,0.04);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.sets-detail-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 1fr 1fr;
+  padding: 0.7rem 1rem;
+  font-size: 0.88rem;
+  color: var(--light);
+  border-top: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.2s;
+}
+
+.sets-detail-row:hover {
+  background: rgba(255,77,0,0.04);
+}
+
+/* ── WORKOUT IMAGE ── */
+.workout-image-container {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.07);
+}
+
+.workout-image {
+  width: 100%;
+  max-height: 350px;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── WATER TRACKER ── */
+.water-progress-bar {
+  height: 10px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 0.8rem 0 0.4rem;
+}
+
+.water-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4fc3f7, #0288d1);
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
+
+.water-progress-label {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.water-glasses {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.water-glass {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  filter: grayscale(1);
+  opacity: 0.3;
+  transition: all 0.3s;
+}
+
+.water-glass.filled {
+  filter: grayscale(0);
+  opacity: 1;
+  background: rgba(79,195,247,0.1);
+  border-color: rgba(79,195,247,0.3);
+}
+
+.water-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}

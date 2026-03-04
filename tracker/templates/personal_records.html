@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Personal Records{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-wrapper">
+
+  <!-- HEADER -->
+  <div class="dashboard-header">
+    <div>
+      <h1 class="dashboard-title">PERSONAL <span>RECORDS</span></h1>
+      <p class="dashboard-sub">Your all-time best lifts 🏆</p>
+    </div>
+    <a href="{% url 'dashboard' %}" class="btn-ghost">
+      <i class="bi bi-arrow-left"></i> Dashboard
+    </a>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid mb-4" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="stat-card">
+      <div class="stat-card-icon"><i class="bi bi-trophy-fill"></i></div>
+      <div class="stat-card-info">
+        <div class="stat-card-num">{{ total_prs }}</div>
+        <div class="stat-card-label">Total PRs</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-icon"><i class="bi bi-fire"></i></div>
+      <div class="stat-card-info">
+        <div class="stat-card-num">
+          {% if prs %}{{ prs.0.weight }}kg{% else %}--{% endif %}
+        </div>
+        <div class="stat-card-label">Latest PR Weight</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-icon"><i class="bi bi-calendar-check"></i></div>
+      <div class="stat-card-info">
+        <div class="stat-card-num">
+          {% if prs %}{{ prs.0.achieved_on }}{% else %}--{% endif %}
+        </div>
+        <div class="stat-card-label">Latest PR Date</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PR LIST -->
+  <div class="dashboard-card">
+    <div class="dashboard-card-header">
+      <h3 class="dashboard-card-title">🏆 ALL TIME BESTS</h3>
+    </div>
+
+    {% if prs %}
+      <div class="pr-list">
+        {% for pr in prs %}
+          <div class="pr-item">
+            <div class="pr-item-left">
+              <div class="pr-rank">
+                <i class="bi bi-trophy-fill"></i>
+              </div>
+              <div>
+                <div class="pr-exercise-name">{{ pr.exercise_name }}</div>
+                <div class="pr-detail">
+                  {{ pr.reps }} reps ·
+                  Achieved on {{ pr.achieved_on }}
+                  {% if pr.workout %}
+                    · <a href="{% url 'workout_detail' pr.workout.id %}"
+                         style="color:var(--fire);text-decoration:none;">
+                        View Workout
+                      </a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            <div class="pr-weight">
+              {{ pr.weight }}<span>kg</span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <i class="bi bi-trophy"></i>
+        <p>No PRs yet! Log a workout to start tracking your bests.</p>
+        <a href="{% url 'log_workout' %}" class="btn-primary-custom mt-2">
+          + Log Workout
+        </a>
+      </div>
+    {% endif %}
+
+  </div>
+
+</div>
+
+{% endblock %}

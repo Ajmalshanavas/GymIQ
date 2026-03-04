@@ -80,6 +80,25 @@
 
   </div>
 
+    {% if recent_prs %}
+<div class="pr-banner mb-4">
+  <div class="pr-banner-title">
+    <i class="bi bi-trophy-fill"></i> RECENT PRs
+  </div>
+  <div class="pr-banner-items">
+    {% for pr in recent_prs %}
+      <div class="pr-banner-item">
+        <span class="pr-banner-exercise">{{ pr.exercise_name }}</span>
+        <span class="pr-banner-weight">{{ pr.weight }}kg</span>
+      </div>
+    {% endfor %}
+  </div>
+  <a href="{% url 'personal_records' %}" class="pr-banner-link">
+    View All →
+  </a>
+</div>
+{% endif %}
+
   <!-- MINI CHARTS ROW -->
   <div class="dashboard-grid mb-4">
 
@@ -188,67 +207,118 @@
 
     </div>
 
-    <!-- TODAY'S NUTRITION -->
-    <div class="dashboard-card">
-      <div class="dashboard-card-header">
-        <h3 class="dashboard-card-title">TODAY'S NUTRITION</h3>
-        <a href="{% url 'log_meal' %}" class="dashboard-card-link" style="color: var(--fire);">
-          + Add Meal
-        </a>
-      </div>
+  <!-- WATER TRACKER -->
+<div class="dashboard-card mb-4">
+  <div class="dashboard-card-header">
+    <h3 class="dashboard-card-title">💧 WATER INTAKE</h3>
+    <span style="color:var(--muted);font-size:0.82rem;">
+      {{ water_log.glasses }}/{{ water_log.goal }} glasses
+    </span>
+  </div>
 
-      {% if todays_nutrition %}
-        {% for log in todays_nutrition %}
-          <div class="nutrition-item">
-            <div class="nutrition-item-left">
-              <div class="nutrition-item-icon">
-                <i class="bi bi-egg-fried"></i>
-              </div>
-              <div>
-                <div class="nutrition-item-name">{{ log.meal_name }}</div>
-                <div class="nutrition-item-detail">
-                  P: {{ log.protein }}g ·
-                  C: {{ log.carbs }}g ·
-                  F: {{ log.fat }}g
-                </div>
-              </div>
-            </div>
-            <div class="nutrition-item-right">
-              <div class="nutrition-item-calories">{{ log.calories }} kcal</div>
-              <a href="{% url 'edit_meal' log.id %}"
-                 class="edit-btn"
-                 title="Edit meal">
-                <i class="bi bi-pencil"></i>
-              </a>
-              <a href="{% url 'delete_meal' log.id %}"
-                 class="delete-btn"
-                 onclick="return confirm('Delete {{ log.meal_name }}? This cannot be undone.')"
-                 title="Delete meal">
-                <i class="bi bi-trash"></i>
-              </a>
+  <!-- Progress Bar -->
+  <div class="water-progress-bar">
+    <div class="water-progress-fill" style="width:{{ water_percentage }}%;"
+         id="waterProgressFill"></div>
+  </div>
+  <div class="water-progress-label" id="waterLabel">
+    {{ water_percentage }}% of daily goal
+    {% if water_log.is_goal_met %}
+      <span style="color:#4fc3f7;">🎉 Goal reached!</span>
+    {% endif %}
+  </div>
+
+  <!-- Glass icons -->
+  <div class="water-glasses" id="waterGlasses">
+    {% for i in "12345678" %}
+      <div class="water-glass {% if forloop.counter <= water_log.glasses %}filled{% endif %}">
+        💧
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Buttons -->
+  <div class="water-actions">
+    <a href="{% url 'water_remove' %}" class="btn-ghost" style="padding:0.5rem 1rem;font-size:0.82rem;">
+      − Remove
+    </a>
+    <a href="{% url 'water_add' %}" class="btn-primary-custom" style="padding:0.5rem 1.5rem;font-size:0.82rem;">
+      + Add Glass
+    </a>
+    <form method="POST" action="{% url 'water_set_goal' %}" style="display:flex;align-items:center;gap:0.5rem;">
+      {% csrf_token %}
+      <input type="number" name="goal" value="{{ water_log.goal }}"
+             min="1" max="20" class="gymiq-input"
+             style="width:65px;padding:0.4rem 0.6rem;font-size:0.82rem;">
+      <button type="submit" class="btn-ghost" style="padding:0.5rem 0.8rem;font-size:0.78rem;">
+        Set Goal
+      </button>
+    </form>
+  </div>
+</div>
+    <!-- RECENT NUTRITION -->
+<div class="dashboard-card">
+  <div class="dashboard-card-header">
+    <h3 class="dashboard-card-title">RECENT NUTRITION</h3>
+    <a href="{% url 'log_meal' %}" class="dashboard-card-link" style="color:var(--fire);">
+      + Add Meal
+    </a>
+  </div>
+
+  {% if recent_nutrition %}
+    {% for log in recent_nutrition %}
+      <div class="workout-item">
+        <div class="workout-item-left">
+          <div class="workout-item-icon">
+            <i class="bi bi-egg-fried"></i>
+          </div>
+          <div>
+            <div class="workout-item-name">{{ log.meal_name }}</div>
+            <div class="workout-item-detail">
+              P: {{ log.protein }}g · C: {{ log.carbs }}g · F: {{ log.fat }}g
             </div>
           </div>
-        {% endfor %}
-
-        <!-- Daily Total -->
-        <div class="nutrition-total">
-          <span>Daily Total</span>
-          <span style="color:var(--fire);font-weight:600;">
-            {{ total_calories }} kcal
-          </span>
         </div>
-
-      {% else %}
-        <div class="empty-state">
-          <i class="bi bi-egg"></i>
-          <p>No meals logged today. Track your nutrition!</p>
-          <a href="{% url 'log_meal' %}" class="btn-primary-custom mt-2">
-            + Log Meal
+        <div class="workout-item-right">
+          <div class="workout-item-date">{{ log.date }}</div>
+          <span style="color:var(--fire);font-weight:600;font-size:0.85rem;">
+            {{ log.calories }} kcal
+          </span>
+          <a href="{% url 'edit_meal' log.id %}"
+             class="edit-btn" title="Edit meal">
+            <i class="bi bi-pencil"></i>
+          </a>
+          <a href="{% url 'delete_meal' log.id %}"
+             class="delete-btn"
+             onclick="return confirm('Delete {{ log.meal_name }}?')"
+             title="Delete meal">
+            <i class="bi bi-trash"></i>
           </a>
         </div>
-      {% endif %}
+      </div>
+    {% endfor %}
 
+    <!-- Daily Total (today only) -->
+    {% if total_calories %}
+      <div class="nutrition-total">
+        <span>Today's Total</span>
+        <span style="color:var(--fire);font-weight:600;">
+          {{ total_calories }} kcal
+        </span>
+      </div>
+    {% endif %}
+
+  {% else %}
+    <div class="empty-state">
+      <i class="bi bi-egg"></i>
+      <p>No meals logged yet. Track your nutrition!</p>
+      <a href="{% url 'log_meal' %}" class="btn-primary-custom mt-2">
+        + Log Meal
+      </a>
     </div>
+  {% endif %}
+
+</div>
 
   </div>
 

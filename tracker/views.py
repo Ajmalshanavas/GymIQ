@@ -1,21 +1,55 @@
 from django.shortcuts import render, redirect
 from django.db import models as django_models
-from tracker.models import Workout, NutritionLog, Exercise, Set, ContactMessage
+from tracker.models import Workout, NutritionLog, Exercise, Set, ContactMessage, PersonalRecord, WaterIntake
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 import zoneinfo
 import json
 from django.db.models import Sum, Max, F
 from datetime import timedelta
 
 
-# IST timezone helper
+# ── IST TIMEZONE HELPER ────────────────────────────────────────
 def get_ist_today():
     ist = zoneinfo.ZoneInfo('Asia/Kolkata')
     return timezone.now().astimezone(ist).date()
 
 
-# Create your views here.
+# ── PR HELPER ──────────────────────────────────────────────────
+def check_and_update_pr(user, exercise, workout):
+    """Check if any set in this exercise is a new PR"""
+    best_set = exercise.sets.order_by('-weight').first()
+    if not best_set:
+        return False
+
+    existing_pr = PersonalRecord.objects.filter(
+        user=user,
+        exercise_name__iexact=exercise.name
+    ).first()
+
+    if not existing_pr:
+        PersonalRecord.objects.create(
+            user=user,
+            exercise_name=exercise.name,
+            weight=best_set.weight,
+            reps=best_set.reps,
+            achieved_on=workout.date,
+            workout=workout
+        )
+        return True
+    elif best_set.weight > existing_pr.weight:
+        existing_pr.weight = best_set.weight
+        existing_pr.reps = best_set.reps
+        existing_pr.achieved_on = workout.date
+        existing_pr.workout = workout
+        existing_pr.save()
+        return True
+
+    return False
+
+
+# ── HOME ───────────────────────────────────────────────────────
 def home(request):
     context = {}
 
@@ -23,18 +57,15 @@ def home(request):
         user = request.user
         today = get_ist_today()
 
-        # Get last 2 workouts
         recent_workouts = Workout.objects.filter(
             user=user
         ).order_by('-date')[:2]
 
-        # Get today's nutrition
         todays_nutrition = NutritionLog.objects.filter(
             user=user,
             date=today
         )[:2]
 
-        # Calculate today's totals
         total_calories = 0
         total_protein = 0
         total_carbs = 0
@@ -64,6 +95,7 @@ def home(request):
     return render(request, 'home.html', context)
 
 
+# ── DASHBOARD ──────────────────────────────────────────────────
 def dashboard(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -71,18 +103,23 @@ def dashboard(request):
     user = request.user
     today = get_ist_today()
 
-    # Get recent workouts (last 5)
+    # Recent workouts
     recent_workouts = Workout.objects.filter(
         user=user
     ).order_by('-date')[:5]
 
-    # Get today's nutrition logs
+    # Today's nutrition (for totals)
     todays_nutrition = NutritionLog.objects.filter(
         user=user,
         date=today
     )
 
-    # Calculate today's totals
+    # Recent nutrition (last 5 meals with date)
+    recent_nutrition = NutritionLog.objects.filter(
+        user=user
+    ).order_by('-date', '-created_at')[:5]
+
+    # Today's totals
     total_calories = 0
     total_protein = 0
     total_carbs = 0
@@ -93,7 +130,7 @@ def dashboard(request):
         total_carbs += log.carbs
         total_fat += log.fat
 
-    # Calculate workout streak
+    # Workout streak
     streak = 0
     check_date = today
     while True:
@@ -107,7 +144,7 @@ def dashboard(request):
         else:
             break
 
-    # BMI calculation
+    # BMI
     bmi = None
     bmi_category = None
     try:
@@ -126,6 +163,7 @@ def dashboard(request):
     except:
         pass
 
+    # Last 7 days volume for chart
     last_7_volume = []
     for i in range(6, -1, -1):
         day = today - timedelta(days=i)
@@ -140,10 +178,22 @@ def dashboard(request):
             'volume': round(float(vol), 1),
         })
 
+    # Recent PRs for banner
+    recent_prs = PersonalRecord.objects.filter(
+        user=user
+    ).order_by('-achieved_on')[:3]
+
+    # ── WATER INTAKE ──────────────────────────────────────────
+    water_log, created = WaterIntake.objects.get_or_create(
+        user=user,
+        date=today,
+        defaults={'glasses': 0, 'goal': 8}
+    )
+
     context = {
         'user': user,
         'recent_workouts': recent_workouts,
-        'todays_nutrition': todays_nutrition,
+        'recent_nutrition': recent_nutrition,
         'total_calories': total_calories,
         'total_protein': round(total_protein, 1),
         'total_carbs': round(total_carbs, 1),
@@ -153,10 +203,95 @@ def dashboard(request):
         'bmi': bmi,
         'bmi_category': bmi_category,
         'last_7_volume': json.dumps(last_7_volume),
+        'recent_prs': recent_prs,
+        'water_log': water_log,
+        'water_percentage': water_log.get_percentage(),
     }
     return render(request, 'dashboard.html', context)
 
 
+# ── WATER INTAKE VIEWS ─────────────────────────────────────────
+def water_add(request):
+    """Add one glass of water — AJAX or redirect"""
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    today = get_ist_today()
+    water_log, created = WaterIntake.objects.get_or_create(
+        user=request.user,
+        date=today,
+        defaults={'glasses': 0, 'goal': 8}
+    )
+    water_log.glasses += 1
+    water_log.save()
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({
+            'glasses': water_log.glasses,
+            'goal': water_log.goal,
+            'percentage': water_log.get_percentage(),
+            'goal_met': water_log.is_goal_met(),
+        })
+
+    return redirect('dashboard')
+
+
+def water_remove(request):
+    """Remove one glass of water"""
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    today = get_ist_today()
+    water_log, created = WaterIntake.objects.get_or_create(
+        user=request.user,
+        date=today,
+        defaults={'glasses': 0, 'goal': 8}
+    )
+    if water_log.glasses > 0:
+        water_log.glasses -= 1
+        water_log.save()
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({
+            'glasses': water_log.glasses,
+            'goal': water_log.goal,
+            'percentage': water_log.get_percentage(),
+            'goal_met': water_log.is_goal_met(),
+        })
+
+    return redirect('dashboard')
+
+
+def water_set_goal(request):
+    """Update daily water goal"""
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    if request.method == 'POST':
+        today = get_ist_today()
+        goal = request.POST.get('goal', '8').strip()
+        try:
+            goal = int(goal)
+            if goal < 1:
+                goal = 1
+            if goal > 20:
+                goal = 20
+        except ValueError:
+            goal = 8
+
+        water_log, created = WaterIntake.objects.get_or_create(
+            user=request.user,
+            date=today,
+            defaults={'glasses': 0, 'goal': goal}
+        )
+        if not created:
+            water_log.goal = goal
+            water_log.save()
+
+    return redirect('dashboard')
+
+
+# ── LOG WORKOUT ────────────────────────────────────────────────
 def log_workout(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -176,7 +311,6 @@ def log_workout(request):
                 'today': today,
             })
 
-        # Create the workout
         workout = Workout.objects.create(
             user=user,
             title=title,
@@ -185,7 +319,6 @@ def log_workout(request):
             image=image
         )
 
-        # Loop through exercises
         exercise_index = 0
         while f'exercise_{exercise_index}_name' in request.POST:
             ex_name = request.POST.get(f'exercise_{exercise_index}_name', '').strip()
@@ -212,6 +345,9 @@ def log_workout(request):
                         )
                     set_index += 1
 
+                # Check for new PR after all sets are saved
+                check_and_update_pr(user, exercise, workout)
+
             exercise_index += 1
 
         return redirect('dashboard')
@@ -222,6 +358,7 @@ def log_workout(request):
     return render(request, 'log_workout.html', context)
 
 
+# ── DELETE WORKOUT ─────────────────────────────────────────────
 def delete_workout(request, workout_id):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -235,6 +372,7 @@ def delete_workout(request, workout_id):
     return redirect('dashboard')
 
 
+# ── LOG MEAL ───────────────────────────────────────────────────
 def log_meal(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -244,21 +382,22 @@ def log_meal(request):
 
     if request.method == 'POST':
         meal_name = request.POST.get('meal_name', '').strip()
+        date = request.POST.get('date', '').strip()
         calories = request.POST.get('calories', '').strip()
         protein = request.POST.get('protein', '').strip()
         carbs = request.POST.get('carbs', '').strip()
         fat = request.POST.get('fat', '').strip()
 
-        if not meal_name or not calories:
+        if not meal_name or not date or not calories:
             return render(request, 'log_meal.html', {
-                'error': 'Please fill in meal name and calories.',
+                'error': 'Please fill in meal name, date and calories.',
                 'today': today,
             })
 
         NutritionLog.objects.create(
             user=user,
             meal_name=meal_name,
-            date=today,  # ← automatically set to IST today
+            date=date,
             calories=int(calories),
             protein=float(protein) if protein else 0,
             carbs=float(carbs) if carbs else 0,
@@ -273,6 +412,7 @@ def log_meal(request):
     return render(request, 'log_meal.html', context)
 
 
+# ── DELETE MEAL ────────────────────────────────────────────────
 def delete_meal(request, meal_id):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -286,7 +426,7 @@ def delete_meal(request, meal_id):
     return redirect('dashboard')
 
 
-# Calorie burn lookup table
+# ── CALORIE BURN TABLE ─────────────────────────────────────────
 CALORIE_BURN_PER_SET = {
     'bench press': 5,
     'squat': 7,
@@ -320,6 +460,7 @@ def get_calorie_burn(exercise_name, num_sets):
     return calories_per_set * num_sets
 
 
+# ── WORKOUT DETAIL ─────────────────────────────────────────────
 def workout_detail(request, workout_id):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -330,7 +471,6 @@ def workout_detail(request, workout_id):
         return redirect('dashboard')
 
     exercises = workout.exercises.all()
-
     exercise_data = []
     total_calories_burned = 0
 
@@ -354,6 +494,7 @@ def workout_detail(request, workout_id):
     return render(request, 'workout_detail.html', context)
 
 
+# ── EDIT WORKOUT ───────────────────────────────────────────────
 def edit_workout(request, workout_id):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -393,7 +534,6 @@ def edit_workout(request, workout_id):
             workout.image = new_image
 
         workout.save()
-
         workout.exercises.all().delete()
 
         exercise_index = 0
@@ -422,6 +562,8 @@ def edit_workout(request, workout_id):
                         )
                     set_index += 1
 
+                check_and_update_pr(user=request.user, exercise=exercise, workout=workout)
+
             exercise_index += 1
 
         return redirect('workout_detail', workout_id=workout.id)
@@ -434,6 +576,7 @@ def edit_workout(request, workout_id):
     return render(request, 'edit_workout.html', context)
 
 
+# ── EDIT MEAL ──────────────────────────────────────────────────
 def edit_meal(request, meal_id):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -477,6 +620,7 @@ def edit_meal(request, meal_id):
     return render(request, 'edit_meal.html', context)
 
 
+# ── ABOUT & CONTACT ────────────────────────────────────────────
 def about(request):
     return render(request, 'about.html')
 
@@ -504,12 +648,12 @@ def contact(request):
             message=message,
         )
 
-        return render(request, 'contact.html', {
-            'success': True,
-        })
+        return render(request, 'contact.html', {'success': True})
 
     return render(request, 'contact.html')
 
+
+# ── PROGRESS ───────────────────────────────────────────────────
 def progress(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -517,18 +661,14 @@ def progress(request):
     user = request.user
     today = get_ist_today()
 
-    # ── STRENGTH PROGRESS ──────────────────────────────────────
-    # Get all unique exercise names for this user
     exercise_names = Exercise.objects.filter(
         workout__user=user
     ).values_list('name', flat=True).distinct().order_by('name')
 
-    # Get selected exercise from query param
     selected_exercise = request.GET.get('exercise', '')
     if not selected_exercise and exercise_names:
         selected_exercise = list(exercise_names)[0]
 
-    # Get max weight per workout date for selected exercise
     strength_data = []
     if selected_exercise:
         workouts_with_exercise = Exercise.objects.filter(
@@ -544,8 +684,6 @@ def progress(request):
                     'weight': float(max_weight),
                 })
 
-    # ── WEEKLY VOLUME ──────────────────────────────────────────
-    # Last 8 weeks
     weekly_volume = []
     for i in range(7, -1, -1):
         week_start = today - timedelta(days=today.weekday() + 7 * i)
@@ -562,7 +700,6 @@ def progress(request):
             'volume': round(float(volume), 1),
         })
 
-    # ── NUTRITION MACROS (last 7 days) ─────────────────────────
     last_7_days = today - timedelta(days=6)
     nutrition_logs = NutritionLog.objects.filter(
         user=user,
@@ -573,7 +710,6 @@ def progress(request):
     total_carbs = float(nutrition_logs.aggregate(Sum('carbs'))['carbs__sum'] or 0)
     total_fat = float(nutrition_logs.aggregate(Sum('fat'))['fat__sum'] or 0)
 
-    # ── WORKOUT FREQUENCY (last 30 days) ───────────────────────
     workout_dates = list(
         Workout.objects.filter(
             user=user,
@@ -582,14 +718,11 @@ def progress(request):
     )
     workout_dates_str = [str(d) for d in workout_dates]
 
-    # ── DASHBOARD MINI CHARTS DATA ─────────────────────────────
-    # Today's macros for dashboard pie chart
     todays_logs = NutritionLog.objects.filter(user=user, date=today)
     dash_protein = float(todays_logs.aggregate(Sum('protein'))['protein__sum'] or 0)
     dash_carbs = float(todays_logs.aggregate(Sum('carbs'))['carbs__sum'] or 0)
     dash_fat = float(todays_logs.aggregate(Sum('fat'))['fat__sum'] or 0)
 
-    # Last 7 days volume for dashboard bar chart
     last_7_volume = []
     for i in range(6, -1, -1):
         day = today - timedelta(days=i)
@@ -620,3 +753,19 @@ def progress(request):
         'last_7_volume': json.dumps(last_7_volume),
     }
     return render(request, 'progress.html', context)
+
+
+# ── PERSONAL RECORDS ───────────────────────────────────────────
+def personal_records(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    prs = PersonalRecord.objects.filter(
+        user=request.user
+    ).order_by('exercise_name')
+
+    context = {
+        'prs': prs,
+        'total_prs': prs.count(),
+    }
+    return render(request, 'personal_records.html', context)
