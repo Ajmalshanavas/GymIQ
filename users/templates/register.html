@@ -14,7 +14,7 @@
       <p class="auth-sub">Join GymIQ and start tracking your gains 🔥</p>
     </div>
 
-    <!-- Success Messages -->
+    <!-- Server Messages -->
     {% if messages %}
       {% for message in messages %}
         <div class="auth-alert">{{ message }}</div>
@@ -22,64 +22,94 @@
     {% endif %}
 
     <!-- Form -->
-    <form method="POST">
+    <form method="POST" id="register-form" novalidate>
       {% csrf_token %}
 
+      <!-- USERNAME -->
       <div class="form-group">
         <label class="form-label-custom">Username</label>
         <input
           type="text"
+          id="username"
           name="username"
           class="form-input-custom"
           placeholder="e.g. ajmal123"
           value="{{ form.username.value|default:'' }}"
+          autocomplete="username"
         >
-        {% if form.username.errors %}
-          <span class="form-error">{{ form.username.errors.0 }}</span>
-        {% endif %}
+        <span class="form-error" id="username-error">
+          {% if form.username.errors %}{{ form.username.errors.0 }}{% endif %}
+        </span>
       </div>
 
+      <!-- EMAIL -->
       <div class="form-group">
         <label class="form-label-custom">Email</label>
         <input
           type="email"
+          id="email"
           name="email"
           class="form-input-custom"
           placeholder="you@email.com"
           value="{{ form.email.value|default:'' }}"
+          autocomplete="email"
         >
-        {% if form.email.errors %}
-          <span class="form-error">{{ form.email.errors.0 }}</span>
-        {% endif %}
+        <span class="form-error" id="email-error">
+          {% if form.email.errors %}{{ form.email.errors.0 }}{% endif %}
+        </span>
       </div>
 
+      <!-- PASSWORD -->
       <div class="form-group">
         <label class="form-label-custom">Password</label>
-        <input
-          type="password"
-          name="password1"
-          class="form-input-custom"
-          placeholder="Min. 8 characters"
-        >
-        {% if form.password1.errors %}
-          <span class="form-error">{{ form.password1.errors.0 }}</span>
-        {% endif %}
+        <div class="password-input-wrapper">
+          <input
+            type="password"
+            id="password1"
+            name="password1"
+            class="form-input-custom"
+            placeholder="Create a strong password"
+            autocomplete="new-password"
+          >
+          <button type="button" class="toggle-password" data-target="password1" tabindex="-1">
+            <i class="bi bi-eye" id="toggle-icon-password1"></i>
+          </button>
+        </div>
+        <span class="form-error" id="password1-error">
+          {% if form.password1.errors %}{{ form.password1.errors.0 }}{% endif %}
+        </span>
+        <!-- Inline password requirements -->
+        <div class="password-requirements" id="password-requirements">
+          <span class="req" id="req-length"><i class="bi bi-x-circle-fill"></i> At least 8 characters</span>
+          <span class="req" id="req-upper"><i class="bi bi-x-circle-fill"></i> At least 1 uppercase letter</span>
+          <span class="req" id="req-lower"><i class="bi bi-x-circle-fill"></i> At least 1 lowercase letter</span>
+          <span class="req" id="req-number"><i class="bi bi-x-circle-fill"></i> At least 1 number</span>
+          <span class="req" id="req-symbol"><i class="bi bi-x-circle-fill"></i> At least 1 special character (!@#$...)</span>
+        </div>
       </div>
 
+      <!-- CONFIRM PASSWORD -->
       <div class="form-group">
         <label class="form-label-custom">Confirm Password</label>
-        <input
-          type="password"
-          name="password2"
-          class="form-input-custom"
-          placeholder="Repeat your password"
-        >
-        {% if form.password2.errors %}
-          <span class="form-error">{{ form.password2.errors.0 }}</span>
-        {% endif %}
+        <div class="password-input-wrapper">
+          <input
+            type="password"
+            id="password2"
+            name="password2"
+            class="form-input-custom"
+            placeholder="Repeat your password"
+            autocomplete="new-password"
+          >
+          <button type="button" class="toggle-password" data-target="password2" tabindex="-1">
+            <i class="bi bi-eye" id="toggle-icon-password2"></i>
+          </button>
+        </div>
+        <span class="form-error" id="password2-error">
+          {% if form.password2.errors %}{{ form.password2.errors.0 }}{% endif %}
+        </span>
       </div>
 
-      <button type="submit" class="btn-primary-custom w-100 mt-3">
+      <button type="submit" class="btn-primary-custom w-100 mt-3" id="submit-btn">
         CREATE ACCOUNT
       </button>
 
@@ -88,10 +118,262 @@
     <!-- Footer -->
     <p class="auth-footer">
       Already have an account?
-      <a href="#" class="auth-link">Login</a>
+      <a href="{% url 'login' %}" class="auth-link">Login</a>
     </p>
 
   </div>
 </div>
+
+<style>
+  .password-input-wrapper {
+    position: relative;
+  }
+  .toggle-password {
+    position: absolute;
+    right: 0.9rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0;
+    transition: color 0.2s;
+  }
+  .toggle-password:hover { color: var(--light); }
+
+  .password-requirements {
+    display: none;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-top: 0.6rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 4px;
+  }
+  .password-requirements.visible {
+    display: flex;
+  }
+  .req {
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: color 0.2s;
+  }
+  .req i { font-size: 0.75rem; }
+  .req.met {
+    color: #81c784;
+  }
+  .req.met i::before {
+    content: "\F26A"; /* Bootstrap Icons check-circle-fill */
+  }
+
+  .form-input-custom.input-error {
+    border-color: #ef5350 !important;
+  }
+  .form-input-custom.input-ok {
+    border-color: #81c784 !important;
+  }
+  .form-error {
+    display: block;
+    font-size: 0.78rem;
+    color: #ef5350;
+    margin-top: 0.3rem;
+    min-height: 1rem;
+  }
+</style>
+
+<script>
+  const usernameInput  = document.getElementById('username');
+  const emailInput     = document.getElementById('email');
+  const password1Input = document.getElementById('password1');
+  const password2Input = document.getElementById('password2');
+  const form           = document.getElementById('register-form');
+
+  const usernameError  = document.getElementById('username-error');
+  const emailError     = document.getElementById('email-error');
+  const password1Error = document.getElementById('password1-error');
+  const password2Error = document.getElementById('password2-error');
+  const requirements   = document.getElementById('password-requirements');
+
+  // ── HELPERS ────────────────────────────────────────────────
+  function setError(input, errorEl, msg) {
+    errorEl.textContent = msg;
+    input.classList.add('input-error');
+    input.classList.remove('input-ok');
+  }
+
+  function setOk(input, errorEl) {
+    errorEl.textContent = '';
+    input.classList.remove('input-error');
+    input.classList.add('input-ok');
+  }
+
+  function clearState(input, errorEl) {
+    errorEl.textContent = '';
+    input.classList.remove('input-error', 'input-ok');
+  }
+
+  function updateReq(id, met) {
+    const el = document.getElementById(id);
+    if (met) {
+      el.classList.add('met');
+    } else {
+      el.classList.remove('met');
+    }
+  }
+
+  // ── USERNAME VALIDATION ────────────────────────────────────
+  usernameInput.addEventListener('input', function () {
+    const val = this.value.trim();
+    if (val === '') {
+      clearState(this, usernameError);
+    } else if (val.length < 3) {
+      setError(this, usernameError, 'Username must be at least 3 characters.');
+    } else if (!/^[a-zA-Z0-9_]+$/.test(val)) {
+      setError(this, usernameError, 'Only letters, numbers and underscores allowed.');
+    } else {
+      setOk(this, usernameError);
+    }
+  });
+
+  // ── EMAIL VALIDATION ───────────────────────────────────────
+  emailInput.addEventListener('input', function () {
+    const val = this.value.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    if (val === '') {
+      clearState(this, emailError);
+    } else if (!emailRegex.test(val)) {
+      setError(this, emailError, 'Enter a valid email address (e.g. you@example.com).');
+    } else {
+      setOk(this, emailError);
+    }
+  });
+
+  // ── PASSWORD VALIDATION ────────────────────────────────────
+  password1Input.addEventListener('focus', function () {
+    requirements.classList.add('visible');
+  });
+
+  password1Input.addEventListener('input', function () {
+    const val = this.value;
+
+    const hasLength  = val.length >= 8;
+    const hasUpper   = /[A-Z]/.test(val);
+    const hasLower   = /[a-z]/.test(val);
+    const hasNumber  = /[0-9]/.test(val);
+    const hasSymbol  = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(val);
+    const allMet     = hasLength && hasUpper && hasLower && hasNumber && hasSymbol;
+
+    updateReq('req-length', hasLength);
+    updateReq('req-upper',  hasUpper);
+    updateReq('req-lower',  hasLower);
+    updateReq('req-number', hasNumber);
+    updateReq('req-symbol', hasSymbol);
+
+    if (val === '') {
+      clearState(this, password1Error);
+    } else if (allMet) {
+      setOk(this, password1Error);
+    } else {
+      this.classList.add('input-error');
+      this.classList.remove('input-ok');
+      password1Error.textContent = '';
+    }
+
+    // Re-check confirm password if already typed
+    if (password2Input.value !== '') validateConfirm();
+  });
+
+  // ── CONFIRM PASSWORD ───────────────────────────────────────
+  function validateConfirm() {
+    const val = password2Input.value;
+    if (val === '') {
+      clearState(password2Input, password2Error);
+    } else if (val !== password1Input.value) {
+      setError(password2Input, password2Error, 'Passwords do not match.');
+    } else {
+      setOk(password2Input, password2Error);
+    }
+  }
+  password2Input.addEventListener('input', validateConfirm);
+
+  // ── SHOW / HIDE PASSWORD ───────────────────────────────────
+  document.querySelectorAll('.toggle-password').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const targetId = this.dataset.target;
+      const input    = document.getElementById(targetId);
+      const icon     = document.getElementById('toggle-icon-' + targetId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('bi-eye', 'bi-eye-slash');
+      } else {
+        input.type = 'password';
+        icon.classList.replace('bi-eye-slash', 'bi-eye');
+      }
+    });
+  });
+
+  // ── BLOCK SUBMIT IF CLIENT ERRORS ─────────────────────────
+  form.addEventListener('submit', function (e) {
+    let valid = true;
+
+    // Username
+    const uVal = usernameInput.value.trim();
+    if (!uVal) {
+      setError(usernameInput, usernameError, 'Username is required.');
+      valid = false;
+    } else if (uVal.length < 3) {
+      setError(usernameInput, usernameError, 'Username must be at least 3 characters.');
+      valid = false;
+    } else if (!/^[a-zA-Z0-9_]+$/.test(uVal)) {
+      setError(usernameInput, usernameError, 'Only letters, numbers and underscores allowed.');
+      valid = false;
+    }
+
+    // Email
+    const eVal = emailInput.value.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    if (!eVal) {
+      setError(emailInput, emailError, 'Email is required.');
+      valid = false;
+    } else if (!emailRegex.test(eVal)) {
+      setError(emailInput, emailError, 'Enter a valid email address.');
+      valid = false;
+    }
+
+    // Password
+    const pVal = password1Input.value;
+    const allMet = pVal.length >= 8
+      && /[A-Z]/.test(pVal)
+      && /[a-z]/.test(pVal)
+      && /[0-9]/.test(pVal)
+      && /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(pVal);
+
+    if (!pVal) {
+      setError(password1Input, password1Error, 'Password is required.');
+      valid = false;
+    } else if (!allMet) {
+      setError(password1Input, password1Error, 'Password does not meet all requirements.');
+      requirements.classList.add('visible');
+      valid = false;
+    }
+
+    // Confirm
+    if (!password2Input.value) {
+      setError(password2Input, password2Error, 'Please confirm your password.');
+      valid = false;
+    } else if (password2Input.value !== password1Input.value) {
+      setError(password2Input, password2Error, 'Passwords do not match.');
+      valid = false;
+    }
+
+    if (!valid) e.preventDefault();
+  });
+</script>
 
 {% endblock %}

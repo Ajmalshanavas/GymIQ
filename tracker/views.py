@@ -140,7 +140,7 @@ def dashboard(request):
         ).exists()
         if worked_out:
             streak += 1
-            check_date = check_date - timezone.timedelta(days=1)
+            check_date = check_date - timedelta(days=1)
         else:
             break
 

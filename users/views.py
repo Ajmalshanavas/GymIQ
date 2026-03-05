@@ -110,19 +110,19 @@ def change_password(request):
 
         # Validate current password
         if not request.user.check_password(current_password):
-            return render(request, 'users/change_password.html', {
+            return render(request, 'change_password.html', {
                 'error': 'Current password is incorrect.'
             })
 
         # Validate new passwords match
         if new_password != confirm_password:
-            return render(request, 'users/change_password.html', {
+            return render(request, 'change_password.html', {
                 'error': 'New passwords do not match.'
             })
 
         # Validate length
         if len(new_password) < 8:
-            return render(request, 'users/change_password.html', {
+            return render(request, 'change_password.html', {
                 'error': 'Password must be at least 8 characters.'
             })
 
@@ -133,8 +133,21 @@ def change_password(request):
         # Keep user logged in after password change
         update_session_auth_hash(request, request.user)
 
-        return render(request, 'users/change_password.html', {
+        return render(request, 'change_password.html', {
             'success': 'Password changed successfully!'
         })
 
     return render(request, 'change_password.html')
+
+
+def delete_account(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    if request.method == 'POST':
+        user = request.user
+        logout(request)
+        user.delete()
+        return redirect('home')
+
+    return redirect('profile')

@@ -107,7 +107,7 @@
       </div>
 
       <!-- Change Password Link -->
-      <div class="dashboard-card">
+      <div class="dashboard-card mb-4">
         <div class="dashboard-card-header">
           <h3 class="dashboard-card-title">SECURITY</h3>
         </div>
@@ -117,6 +117,55 @@
         <a href="{% url 'change_password' %}" class="btn-ghost" style="font-size:0.85rem;padding:0.6rem 1.2rem;">
           <i class="bi bi-lock"></i> Change Password
         </a>
+      </div>
+
+      <!-- Delete Account -->
+      <div class="dashboard-card" style="border:1px solid rgba(239,83,80,0.25);">
+        <div class="dashboard-card-header">
+          <h3 class="dashboard-card-title" style="color:#ef5350;">DANGER ZONE</h3>
+        </div>
+        <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;line-height:1.6;">
+          Permanently delete your account and all associated data — workouts, meals, PRs, and water logs. <strong style="color:#ef5350;">This cannot be undone.</strong>
+        </p>
+        <button type="button" class="btn-delete-account" id="delete-account-btn">
+          <i class="bi bi-trash3"></i> Delete My Account
+        </button>
+      </div>
+
+      <!-- Delete Confirmation Modal -->
+      <div class="delete-modal-overlay" id="delete-modal-overlay">
+        <div class="delete-modal">
+          <div class="delete-modal-icon">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+          </div>
+          <h3 class="delete-modal-title">Delete Account?</h3>
+          <p class="delete-modal-desc">
+            This will permanently delete your account and <strong>all your data</strong> — including all workouts, meals, personal records, and water logs. There is no going back.
+          </p>
+          <p class="delete-modal-desc mt-2" style="color:var(--muted);font-size:0.82rem;">
+            Type <strong style="color:#ef5350;">DELETE</strong> to confirm.
+          </p>
+          <input
+            type="text"
+            id="delete-confirm-input"
+            class="gymiq-input mt-2"
+            placeholder="Type DELETE here"
+            autocomplete="off"
+            style="text-align:center;letter-spacing:0.1em;"
+          >
+          <span class="form-error" id="delete-confirm-error" style="text-align:center;display:block;"></span>
+          <div class="delete-modal-actions mt-3">
+            <button type="button" class="btn-ghost" id="cancel-delete-btn" style="flex:1;">
+              Cancel
+            </button>
+            <form method="POST" action="{% url 'delete_account' %}" id="delete-account-form" style="flex:1;">
+              {% csrf_token %}
+              <button type="submit" class="btn-delete-account w-100" id="confirm-delete-btn" disabled>
+                <i class="bi bi-trash3"></i> Yes, Delete
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -249,6 +298,86 @@
 
 </div>
 
+<style>
+  .btn-delete-account {
+    background: transparent;
+    color: #ef5350;
+    border: 1px solid rgba(239,83,80,0.4);
+    padding: 0.6rem 1.2rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: 100%;
+    justify-content: center;
+  }
+  .btn-delete-account:hover {
+    background: rgba(239,83,80,0.1);
+    border-color: #ef5350;
+  }
+  .btn-delete-account:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .delete-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .delete-modal-overlay.active {
+    display: flex;
+  }
+  .delete-modal {
+    background: var(--dark3);
+    border: 1px solid rgba(239,83,80,0.3);
+    border-radius: 8px;
+    padding: 2rem;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    animation: fadeUp 0.2s ease;
+  }
+  .delete-modal-icon {
+    font-size: 2.5rem;
+    color: #ef5350;
+    margin-bottom: 1rem;
+  }
+  .delete-modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    color: var(--light);
+    margin-bottom: 0.75rem;
+  }
+  .delete-modal-desc {
+    color: var(--muted);
+    font-size: 0.88rem;
+    line-height: 1.7;
+  }
+  .delete-modal-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+  .form-error {
+    display: block;
+    font-size: 0.78rem;
+    color: #ef5350;
+    margin-top: 0.3rem;
+    min-height: 1rem;
+  }
+</style>
+
 <script>
   // Profile picture preview
   const picInput = document.getElementById('pic-input');
@@ -292,6 +421,62 @@
       }
     });
   }
+
+  // ── DELETE ACCOUNT MODAL ───────────────────────────────────
+  const deleteAccountBtn  = document.getElementById('delete-account-btn');
+  const deleteModalOverlay = document.getElementById('delete-modal-overlay');
+  const cancelDeleteBtn   = document.getElementById('cancel-delete-btn');
+  const deleteConfirmInput = document.getElementById('delete-confirm-input');
+  const deleteConfirmError = document.getElementById('delete-confirm-error');
+  const confirmDeleteBtn  = document.getElementById('confirm-delete-btn');
+
+  // Open modal
+  deleteAccountBtn.addEventListener('click', function () {
+    deleteModalOverlay.classList.add('active');
+    deleteConfirmInput.value = '';
+    confirmDeleteBtn.disabled = true;
+    deleteConfirmError.textContent = '';
+    setTimeout(() => deleteConfirmInput.focus(), 100);
+  });
+
+  // Close modal
+  cancelDeleteBtn.addEventListener('click', function () {
+    deleteModalOverlay.classList.remove('active');
+  });
+
+  // Close on overlay click
+  deleteModalOverlay.addEventListener('click', function (e) {
+    if (e.target === deleteModalOverlay) {
+      deleteModalOverlay.classList.remove('active');
+    }
+  });
+
+  // Close on Escape key
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      deleteModalOverlay.classList.remove('active');
+    }
+  });
+
+  // Enable confirm button only when user types DELETE exactly
+  deleteConfirmInput.addEventListener('input', function () {
+    if (this.value === 'DELETE') {
+      confirmDeleteBtn.disabled = false;
+      deleteConfirmError.textContent = '';
+      this.style.borderColor = '#ef5350';
+    } else {
+      confirmDeleteBtn.disabled = true;
+      this.style.borderColor = '';
+    }
+  });
+
+  // Extra guard on form submit
+  document.getElementById('delete-account-form').addEventListener('submit', function (e) {
+    if (deleteConfirmInput.value !== 'DELETE') {
+      e.preventDefault();
+      deleteConfirmError.textContent = 'Please type DELETE exactly to confirm.';
+    }
+  });
 </script>
 
 {% endblock %}

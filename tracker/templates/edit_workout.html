@@ -146,7 +146,7 @@
                 <span class="set-num-label">{{ set.set_number }}</span>
                 <input
                   type="number"
-                  name="exercise_{{ exercise.id }}_set_{{ forloop.counter0 }}_reps"
+                  name="exercise_{{ forloop.parentloop.counter0 }}_set_{{ forloop.counter0 }}_reps"
                   class="gymiq-input set-input"
                   value="{{ set.reps }}"
                   min="1"
@@ -154,7 +154,7 @@
                 >
                 <input
                   type="number"
-                  name="exercise_{{ exercise.id }}_set_{{ forloop.counter0 }}_weight"
+                  name="exercise_{{ forloop.parentloop.counter0 }}_set_{{ forloop.counter0 }}_weight"
                   class="gymiq-input set-input"
                   value="{{ set.weight }}"
                   step="0.5"

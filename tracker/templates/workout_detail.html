@@ -20,11 +20,6 @@
       <a href="{% url 'dashboard' %}" class="btn-ghost">
         <i class="bi bi-arrow-left"></i> Dashboard
       </a>
-        {% if workout.image %}
-  <div class="workout-image-container mb-4">
-    <img src="{{ workout.image.url }}" alt="{{ workout.title }}" class="workout-image">
-  </div>
-{% endif %}
     </div>
   </div>
 

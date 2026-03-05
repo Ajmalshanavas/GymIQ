@@ -155,33 +155,7 @@ class PersonalRecord(models.Model):
         return f"{self.user.email} — {self.exercise_name} — {self.weight}kg"
 
 
-# ── WATER INTAKE ───────────────────────────────────────────────
-class WaterIntake(models.Model):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='water_logs'
-    )
-    date = models.DateField()
-    glasses = models.PositiveIntegerField(default=0)
-    goal = models.PositiveIntegerField(default=8)
-    updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        unique_together = ['user', 'date']  # one record per user per day
-        ordering = ['-date']
-
-    def __str__(self):
-        return f"{self.user.email} — {self.date} — {self.glasses}/{self.goal} glasses"
-
-    def get_percentage(self):
-        """Return progress percentage capped at 100"""
-        if self.goal == 0:
-            return 0
-        return min(round((self.glasses / self.goal) * 100), 100)
-
-    def is_goal_met(self):
-        return self.glasses >= self.goal
 
 
 # ── WATER INTAKE ──────────────────────────────────────────────

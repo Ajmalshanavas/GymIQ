@@ -19,30 +19,43 @@
       {% endfor %}
     {% endif %}
 
-    <form method="POST">
+    <form method="POST" id="login-form" novalidate>
       {% csrf_token %}
 
+      <!-- EMAIL -->
       <div class="form-group">
         <label class="form-label-custom">Email</label>
         <input
           type="email"
+          id="email"
           name="email"
           class="form-input-custom"
           placeholder="you@email.com"
+          autocomplete="email"
         >
+        <span class="form-error" id="email-error"></span>
       </div>
 
+      <!-- PASSWORD -->
       <div class="form-group">
         <label class="form-label-custom">Password</label>
-        <input
-          type="password"
-          name="password"
-          class="form-input-custom"
-          placeholder="Your password"
-        >
+        <div class="password-input-wrapper">
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="form-input-custom"
+            placeholder="Your password"
+            autocomplete="current-password"
+          >
+          <button type="button" class="toggle-password" tabindex="-1">
+            <i class="bi bi-eye" id="toggle-icon-password"></i>
+          </button>
+        </div>
+        <span class="form-error" id="password-error"></span>
       </div>
 
-      <button type="submit" class="btn-primary-custom w-100 mt-3">
+      <button type="submit" class="btn-primary-custom w-100 mt-3" id="login-btn">
         LOGIN
       </button>
 
@@ -56,6 +69,121 @@
   </div>
 </div>
 
-{% endblock %}
-```
+<style>
+  .password-input-wrapper {
+    position: relative;
+  }
+  .toggle-password {
+    position: absolute;
+    right: 0.9rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0;
+    transition: color 0.2s;
+  }
+  .toggle-password:hover { color: var(--light); }
 
+  .form-input-custom.input-error {
+    border-color: #ef5350 !important;
+  }
+  .form-input-custom.input-ok {
+    border-color: #81c784 !important;
+  }
+  .form-error {
+    display: block;
+    font-size: 0.78rem;
+    color: #ef5350;
+    margin-top: 0.3rem;
+    min-height: 1rem;
+  }
+</style>
+
+<script>
+  const emailInput    = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const emailError    = document.getElementById('email-error');
+  const passwordError = document.getElementById('password-error');
+  const form          = document.getElementById('login-form');
+
+  // ── HELPERS ────────────────────────────────────────────────
+  function setError(input, errorEl, msg) {
+    errorEl.textContent = msg;
+    input.classList.add('input-error');
+    input.classList.remove('input-ok');
+  }
+
+  function setOk(input, errorEl) {
+    errorEl.textContent = '';
+    input.classList.remove('input-error');
+    input.classList.add('input-ok');
+  }
+
+  function clearState(input, errorEl) {
+    errorEl.textContent = '';
+    input.classList.remove('input-error', 'input-ok');
+  }
+
+  // ── EMAIL — real-time ─────────────────────────────────────
+  emailInput.addEventListener('input', function () {
+    const val = this.value.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    if (val === '') {
+      clearState(this, emailError);
+    } else if (!emailRegex.test(val)) {
+      setError(this, emailError, 'Enter a valid email address (e.g. you@example.com).');
+    } else {
+      setOk(this, emailError);
+    }
+  });
+
+  // ── PASSWORD — clear error as user types ──────────────────
+  passwordInput.addEventListener('input', function () {
+    if (this.value !== '') {
+      setOk(this, passwordError);
+    } else {
+      clearState(this, passwordError);
+    }
+  });
+
+  // ── SHOW / HIDE PASSWORD ───────────────────────────────────
+  document.querySelector('.toggle-password').addEventListener('click', function () {
+    const icon = document.getElementById('toggle-icon-password');
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      icon.classList.replace('bi-eye', 'bi-eye-slash');
+    } else {
+      passwordInput.type = 'password';
+      icon.classList.replace('bi-eye-slash', 'bi-eye');
+    }
+  });
+
+  // ── BLOCK SUBMIT IF EMPTY / INVALID ───────────────────────
+  form.addEventListener('submit', function (e) {
+    let valid = true;
+
+    const eVal = emailInput.value.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+    if (!eVal) {
+      setError(emailInput, emailError, 'Email is required.');
+      valid = false;
+    } else if (!emailRegex.test(eVal)) {
+      setError(emailInput, emailError, 'Enter a valid email address.');
+      valid = false;
+    }
+
+    if (!passwordInput.value) {
+      setError(passwordInput, passwordError, 'Password is required.');
+      valid = false;
+    }
+
+    if (!valid) e.preventDefault();
+  });
+</script>
+
+{% endblock %}
