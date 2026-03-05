@@ -25,6 +25,26 @@
     </div>
   {% endif %}
 
+  <!-- LOAD TEMPLATE CARD -->
+  {% if templates %}
+  <div class="dashboard-card mb-4">
+    <div class="dashboard-card-header">
+      <h3 class="dashboard-card-title">📋 LOAD TEMPLATE</h3>
+      <a href="{% url 'workout_templates' %}" class="dashboard-card-link">Manage →</a>
+    </div>
+    <div style="display:flex;gap:0.8rem;flex-wrap:wrap;">
+      {% for template in templates %}
+        <button type="button"
+                class="btn-ghost"
+                onclick="loadTemplate({{ template.id }})"
+                style="font-size:0.85rem;padding:0.5rem 1.2rem;">
+          <i class="bi bi-bookmark-fill"></i> {{ template.name }}
+        </button>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
   <form method="POST" id="workout-form" enctype="multipart/form-data">
     {% csrf_token %}
 
@@ -40,6 +60,7 @@
           <input
             type="text"
             name="title"
+            id="workout-title"
             class="gymiq-input"
             placeholder="e.g. Chest Day, Push A, Leg Day..."
             required
@@ -48,12 +69,12 @@
         <div class="form-group">
           <label class="gymiq-label">Date *</label>
           <input
-             type="date"
-  name="date"
-  class="gymiq-input"
-  max="{{ today }}"
-  value="{{ today }}"
-  required
+            type="date"
+            name="date"
+            class="gymiq-input"
+            max="{{ today }}"
+            value="{{ today }}"
+            required
           >
         </div>
       </div>
@@ -67,33 +88,34 @@
           rows="2"
         ></textarea>
       </div>
-     <div class="form-group mt-3">
-  <label class="gymiq-label">Workout Photo (optional)</label>
-  <div class="image-upload-area" id="image-upload-area">
-    <input
-      type="file"
-      name="image"
-      id="image-input"
-      accept="image/*"
-      style="display:none;"
-    >
-    <div class="image-upload-placeholder" id="upload-placeholder" onclick="document.getElementById('image-input').click()">
-      <i class="bi bi-camera"></i>
-      <span>Click to upload workout photo</span>
-      <small>JPG, PNG up to 5MB</small>
-    </div>
-    <div class="image-preview-container" id="image-preview-container" style="display:none;">
-      <img id="image-preview" src="" alt="Preview">
-      <button type="button" class="remove-image-btn" id="remove-image-btn">
-        <i class="bi bi-x-circle-fill"></i>
-      </button>
-    </div>
-  </div>
-</div>
 
+      <div class="form-group mt-3">
+        <label class="gymiq-label">Workout Photo (optional)</label>
+        <div class="image-upload-area" id="image-upload-area">
+          <input
+            type="file"
+            name="image"
+            id="image-input"
+            accept="image/*"
+            style="display:none;"
+          >
+          <div class="image-upload-placeholder" id="upload-placeholder"
+               onclick="document.getElementById('image-input').click()">
+            <i class="bi bi-camera"></i>
+            <span>Click to upload workout photo</span>
+            <small>JPG, PNG up to 5MB</small>
+          </div>
+          <div class="image-preview-container" id="image-preview-container" style="display:none;">
+            <img id="image-preview" src="" alt="Preview">
+            <button type="button" class="remove-image-btn" id="remove-image-btn">
+              <i class="bi bi-x-circle-fill"></i>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- EXERCISES CONTAINER — exercises are added here by JavaScript -->
+    <!-- EXERCISES CONTAINER -->
     <div id="exercises-container"></div>
 
     <!-- ADD EXERCISE BUTTON -->
@@ -111,14 +133,7 @@
   </form>
 </div>
 
-
-<!-- ============================================================
-     JAVASCRIPT — handles adding/removing exercises and sets
-     ============================================================ -->
 <script>
-  // This counts how many exercise blocks have been created total
-  // We never decrease this — it ensures unique field names even
-  // if the user deletes an exercise and adds a new one
   let exerciseCounter = 0;
 
   // ─── ADD EXERCISE ───────────────────────────────────────────
@@ -127,7 +142,6 @@
     const exIndex = exerciseCounter;
     exerciseCounter++;
 
-    // Build the exercise card HTML
     const card = document.createElement('div');
     card.className = 'dashboard-card mb-3 exercise-block';
     card.dataset.exerciseIndex = exIndex;
@@ -137,46 +151,29 @@
         <h3 class="dashboard-card-title">
           EXERCISE <span class="ex-num"></span>
         </h3>
-        <button
-          type="button"
-          class="remove-exercise-btn"
-          title="Remove exercise"
-        >
+        <button type="button" class="remove-exercise-btn" title="Remove exercise">
           <i class="bi bi-trash"></i>
         </button>
       </div>
-
       <div class="form-grid-2 mb-3">
         <div class="form-group">
           <label class="gymiq-label">Exercise Name *</label>
-          <input
-            type="text"
-            name="exercise_${exIndex}_name"
-            class="gymiq-input"
-            placeholder="e.g. Bench Press, Squat..."
-            required
-          >
+          <input type="text" name="exercise_${exIndex}_name" class="gymiq-input"
+                 placeholder="e.g. Bench Press, Squat..." required>
         </div>
         <div class="form-group">
           <label class="gymiq-label">Notes (optional)</label>
-          <input
-            type="text"
-            name="exercise_${exIndex}_notes"
-            class="gymiq-input"
-            placeholder="e.g. Pause reps, close grip..."
-          >
+          <input type="text" name="exercise_${exIndex}_notes" class="gymiq-input"
+                 placeholder="e.g. Pause reps, close grip...">
         </div>
       </div>
-
       <div class="sets-table-header">
         <span>SET</span>
         <span>REPS</span>
         <span>WEIGHT (kg)</span>
         <span></span>
       </div>
-
       <div class="sets-container"></div>
-
       <button type="button" class="add-set-btn btn-ghost mt-2">
         <i class="bi bi-plus"></i> Add Set
       </button>
@@ -184,117 +181,127 @@
 
     container.appendChild(card);
 
-    // Wire up the remove exercise button
     card.querySelector('.remove-exercise-btn').addEventListener('click', function () {
       card.remove();
       renumberExercises();
     });
 
-    // Wire up the add set button
     card.querySelector('.add-set-btn').addEventListener('click', function () {
-      const setsContainer = card.querySelector('.sets-container');
-      addSet(setsContainer, exIndex);
+      addSet(card.querySelector('.sets-container'), exIndex);
     });
 
-    // Update all exercise numbers (1, 2, 3...)
     renumberExercises();
+    addSet(card.querySelector('.sets-container'), exIndex);
 
-    // Auto-add one set so the user isn't staring at an empty card
-    const setsContainer = card.querySelector('.sets-container');
-    addSet(setsContainer, exIndex);
+    return card;
   }
-
 
   // ─── ADD SET ────────────────────────────────────────────────
   function addSet(setsContainer, exIndex) {
     const setIndex = setsContainer.children.length;
-
     const row = document.createElement('div');
     row.className = 'set-row';
-
     row.innerHTML = `
       <span class="set-num-label">${setIndex + 1}</span>
-      <input
-        type="number"
-        name="exercise_${exIndex}_set_${setIndex}_reps"
-        class="gymiq-input set-input"
-        placeholder="Reps"
-        min="1"
-        required
-      >
-      <input
-        type="number"
-        name="exercise_${exIndex}_set_${setIndex}_weight"
-        class="gymiq-input set-input"
-        placeholder="kg"
-        step="0.5"
-        min="0"
-        required
-      >
+      <input type="number" name="exercise_${exIndex}_set_${setIndex}_reps"
+             class="gymiq-input set-input" placeholder="Reps" min="1" required>
+      <input type="number" name="exercise_${exIndex}_set_${setIndex}_weight"
+             class="gymiq-input set-input" placeholder="kg" step="0.5" min="0" required>
       <button type="button" class="remove-set-btn" title="Remove set">
         <i class="bi bi-x-circle"></i>
       </button>
     `;
-
     setsContainer.appendChild(row);
-
-    // Wire up the remove set button
     row.querySelector('.remove-set-btn').addEventListener('click', function () {
       row.remove();
       renumberSets(setsContainer);
     });
+    return row;
   }
 
-
-  // ─── RENUMBER EXERCISE LABELS ────────────────────────────────
+  // ─── RENUMBER ────────────────────────────────────────────────
   function renumberExercises() {
-    const blocks = document.querySelectorAll('.exercise-block');
-    blocks.forEach(function (block, i) {
+    document.querySelectorAll('.exercise-block').forEach(function (block, i) {
       block.querySelector('.ex-num').textContent = i + 1;
     });
   }
 
-
-  // ─── RENUMBER SET LABELS AFTER DELETION ──────────────────────
   function renumberSets(setsContainer) {
-    const rows = setsContainer.querySelectorAll('.set-row');
-    rows.forEach(function (row, i) {
+    setsContainer.querySelectorAll('.set-row').forEach(function (row, i) {
       row.querySelector('.set-num-label').textContent = i + 1;
     });
   }
 
+  // ─── LOAD TEMPLATE ───────────────────────────────────────────
+  function loadTemplate(templateId) {
+  // Fetch FIRST, then clear and fill — no confirm needed
+  fetch(`/templates/load/${templateId}/`)
+    .then(res => res.json())
+    .then(data => {
+      // Set title
+      document.getElementById('workout-title').value = data.name;
 
-  // ─── WIRE UP THE ADD EXERCISE BUTTON ────────────────────────
+      // Clear exercises
+      document.getElementById('exercises-container').innerHTML = '';
+      exerciseCounter = 0;
+
+      // Add each exercise from template
+      data.exercises.forEach(ex => {
+        const card = addExercise();
+        const exIndex = card.dataset.exerciseIndex;
+
+        card.querySelector(`[name="exercise_${exIndex}_name"]`).value = ex.name;
+        card.querySelector(`[name="exercise_${exIndex}_notes"]`).value = ex.notes || '';
+
+        const setsContainer = card.querySelector('.sets-container');
+        setsContainer.innerHTML = '';
+
+        ex.sets.forEach(s => {
+          const row = addSet(setsContainer, exIndex);
+          const inputs = row.querySelectorAll('input[type="number"]');
+          inputs[0].value = s.reps;
+          inputs[1].value = s.weight;
+        });
+      });
+    })
+    .catch(() => alert('Failed to load template. Please try again.'));
+}
+
+  // ─── INIT ────────────────────────────────────────────────────
   document.getElementById('add-exercise-btn').addEventListener('click', addExercise);
-
-  // Auto-add one exercise when page loads so it's not empty
   addExercise();
 
-    // Image upload preview
-const imageInput = document.getElementById('image-input');
-const uploadPlaceholder = document.getElementById('upload-placeholder');
-const imagePreviewContainer = document.getElementById('image-preview-container');
-const imagePreview = document.getElementById('image-preview');
-const removeImageBtn = document.getElementById('remove-image-btn');
+  // Image upload preview
+  const imageInput = document.getElementById('image-input');
+  const uploadPlaceholder = document.getElementById('upload-placeholder');
+  const imagePreviewContainer = document.getElementById('image-preview-container');
+  const imagePreview = document.getElementById('image-preview');
+  const removeImageBtn = document.getElementById('remove-image-btn');
 
-imageInput.addEventListener('change', function() {
-  const file = this.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      imagePreview.src = e.target.result;
-      uploadPlaceholder.style.display = 'none';
-      imagePreviewContainer.style.display = 'block';
-    };
-    reader.readAsDataURL(file);
-  }
-});
+  imageInput.addEventListener('change', function () {
+    const file = this.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        imagePreview.src = e.target.result;
+        uploadPlaceholder.style.display = 'none';
+        imagePreviewContainer.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+  });
 
-removeImageBtn.addEventListener('click', function() {
-  imageInput.value = '';
-  imagePreview.src = '';
-  uploadPlaceholder.style.display = 'flex';
-  imagePreviewContainer.style.display = 'none';
-});
+  removeImageBtn.addEventListener('click', function () {
+    imageInput.value = '';
+    imagePreview.src = '';
+    uploadPlaceholder.style.display = 'flex';
+    imagePreviewContainer.style.display = 'none';
+  });
+    const urlParams = new URLSearchParams(window.location.search);
+const templateId = urlParams.get('template');
+if (templateId) {
+  loadTemplate(templateId);
+}
 </script>
-{%  endblock  %}
+
+{% endblock %}

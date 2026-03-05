@@ -17,13 +17,25 @@
       <a href="{% url 'edit_workout' workout.id %}" class="btn-primary-custom">
         <i class="bi bi-pencil"></i> Edit Workout
       </a>
+
+      <!-- SAVE AS TEMPLATE -->
+      <form method="POST" action="{% url 'save_template' workout.id %}"
+            style="display:inline;"
+            id="save-template-form">
+        {% csrf_token %}
+        <input type="hidden" name="template_name" id="template-name-input" value="{{ workout.title }}">
+        <button type="button" class="btn-ghost" onclick="submitTemplateForm()">
+          <i class="bi bi-bookmark-plus"></i> Save as Template
+        </button>
+      </form>
+
       <a href="{% url 'dashboard' %}" class="btn-ghost">
         <i class="bi bi-arrow-left"></i> Dashboard
       </a>
     </div>
   </div>
 
-    {% if workout.image %}
+  {% if workout.image %}
   <div class="workout-image-container mb-4">
     <img src="{{ workout.image.url }}" alt="{{ workout.title }}" class="workout-image">
   </div>
@@ -114,5 +126,15 @@
   {% endfor %}
 
 </div>
+
+<script>
+function submitTemplateForm() {
+  const input = document.getElementById('template-name-input');
+  const name = prompt('Template name:', input.value);
+  if (!name) return;
+  input.value = name;
+  document.getElementById('save-template-form').submit();
+}
+</script>
 
 {% endblock %}

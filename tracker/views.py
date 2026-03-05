@@ -353,9 +353,9 @@ def log_workout(request):
         return redirect('dashboard')
 
     context = {
-        'today': today,
+        'today': today,'templates': WorkoutTemplate.objects.filter(user=user),
     }
-    return render(request, 'log_workout.html', context)
+    return render(request, 'log_workout.html')
 
 
 # ── DELETE WORKOUT ─────────────────────────────────────────────
@@ -368,6 +368,8 @@ def delete_workout(request, workout_id):
         workout.delete()
     except Workout.DoesNotExist:
         pass
+
+
 
     return redirect('dashboard')
 
@@ -769,3 +771,100 @@ def personal_records(request):
         'total_prs': prs.count(),
     }
     return render(request, 'personal_records.html', context)
+
+from tracker.models import Workout, NutritionLog, Exercise, Set, ContactMessage, PersonalRecord, WaterIntake, WorkoutTemplate, TemplateExercise, TemplateSet
+
+def workout_templates(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    templates = WorkoutTemplate.objects.filter(
+        user=request.user
+    ).prefetch_related('exercises__sets')
+
+    context = {
+        'templates': templates,
+    }
+    return render(request, 'workout_templates.html', context)
+
+
+def save_template(request, workout_id):
+    """Save an existing workout as a template"""
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    try:
+        workout = Workout.objects.get(id=workout_id, user=request.user)
+    except Workout.DoesNotExist:
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        template_name = request.POST.get('template_name', workout.title).strip()
+
+        # Create template
+        template = WorkoutTemplate.objects.create(
+            user=request.user,
+            name=template_name,
+        )
+
+        # Copy exercises and sets
+        for i, exercise in enumerate(workout.exercises.all()):
+            tmpl_exercise = TemplateExercise.objects.create(
+                template=template,
+                name=exercise.name,
+                notes=exercise.notes,
+                order=i,
+            )
+            for s in exercise.sets.all():
+                TemplateSet.objects.create(
+                    exercise=tmpl_exercise,
+                    set_number=s.set_number,
+                    reps=s.reps,
+                    weight=s.weight,
+                )
+
+        return redirect('workout_templates')
+
+    return redirect('workout_detail', workout_id=workout_id)
+
+
+def delete_template(request, template_id):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    try:
+        template = WorkoutTemplate.objects.get(id=template_id, user=request.user)
+        template.delete()
+    except WorkoutTemplate.DoesNotExist:
+        pass
+
+    return redirect('workout_templates')
+
+
+def load_template(request, template_id):
+    """Return template data as JSON for pre-filling log workout form"""
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    try:
+        template = WorkoutTemplate.objects.get(id=template_id, user=request.user)
+    except WorkoutTemplate.DoesNotExist:
+        return JsonResponse({'error': 'Not found'}, status=404)
+
+    data = {
+        'name': template.name,
+        'exercises': []
+    }
+
+    for exercise in template.exercises.all():
+        ex_data = {
+            'name': exercise.name,
+            'notes': exercise.notes,
+            'sets': [
+                {'reps': s.reps, 'weight': s.weight}
+                for s in exercise.sets.all()
+            ]
+        }
+        data['exercises'].append(ex_data)
+
+    return JsonResponse(data)

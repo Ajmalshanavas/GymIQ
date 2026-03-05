@@ -185,3 +185,53 @@ class WaterIntake(models.Model):
 
     def is_goal_met(self):
         return self.glasses >= self.goal
+
+# ── WORKOUT TEMPLATES ──────────────────────────────────────────
+class WorkoutTemplate(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='workout_templates'
+    )
+    name = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return f"{self.user.email} — {self.name}"
+
+
+class TemplateExercise(models.Model):
+    template = models.ForeignKey(
+        WorkoutTemplate,
+        on_delete=models.CASCADE,
+        related_name='exercises'
+    )
+    name = models.CharField(max_length=200)
+    notes = models.TextField(blank=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"{self.name} ({self.template.name})"
+
+
+class TemplateSet(models.Model):
+    exercise = models.ForeignKey(
+        TemplateExercise,
+        on_delete=models.CASCADE,
+        related_name='sets'
+    )
+    set_number = models.PositiveIntegerField()
+    reps = models.PositiveIntegerField()
+    weight = models.FloatField(help_text="Weight in kg")
+
+    class Meta:
+        ordering = ['set_number']
+
+    def __str__(self):
+        return f"Set {self.set_number} → {self.reps} reps @ {self.weight}kg"

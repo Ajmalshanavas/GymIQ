@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Workout Templates{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-wrapper">
+
+  <div class="dashboard-header">
+    <div>
+      <h1 class="dashboard-title">WORKOUT <span>TEMPLATES</span></h1>
+      <p class="dashboard-sub">Your saved workout plans 📋</p>
+    </div>
+    <a href="{% url 'log_workout' %}" class="btn-primary-custom">
+      <i class="bi bi-plus-circle"></i> Log Workout
+    </a>
+  </div>
+
+  {% if templates %}
+    <div class="dashboard-grid">
+      {% for template in templates %}
+        <div class="dashboard-card">
+          <div class="dashboard-card-header">
+            <h3 class="dashboard-card-title">
+              <i class="bi bi-bookmark-fill" style="color:var(--fire);margin-right:0.4rem;"></i>
+              {{ template.name }}
+            </h3>
+            <form method="POST" action="{% url 'delete_template' template.id %}"
+                  onsubmit="return confirm('Delete {{ template.name }}?')">
+              {% csrf_token %}
+              <button type="submit" class="delete-btn" title="Delete template">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+          </div>
+
+          <!-- Exercise list -->
+          {% for exercise in template.exercises.all %}
+            <div class="workout-item">
+              <div class="workout-item-left">
+                <div class="workout-item-icon">
+                  <i class="bi bi-dumbbell"></i>
+                </div>
+                <div>
+                  <div class="workout-item-name">{{ exercise.name }}</div>
+                  <div class="workout-item-detail">
+                    {{ exercise.sets.count }} sets
+                    {% with exercise.sets.first as first_set %}
+                      {% if first_set %} · {{ first_set.reps }} reps @ {{ first_set.weight }}kg{% endif %}
+                    {% endwith %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+
+          <!-- Use template button -->
+          <div class="mt-3">
+            <a href="{% url 'log_workout' %}?template={{ template.id }}"
+               class="btn-primary-custom w-100"
+               style="text-align:center;font-size:0.88rem;padding:0.7rem;">
+              <i class="bi bi-play-fill"></i> Use This Template
+            </a>
+          </div>
+
+        </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <div class="dashboard-card">
+      <div class="empty-state" style="padding:3rem;">
+        <i class="bi bi-bookmark" style="font-size:3rem;color:var(--muted);display:block;margin-bottom:1rem;"></i>
+        <p>No templates yet. Save a workout as a template from the workout detail page!</p>
+        <a href="{% url 'dashboard' %}" class="btn-primary-custom mt-3">
+          View Workouts
+        </a>
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}
