@@ -257,6 +257,55 @@
             </div>
           </div>
 
+          <!-- DAILY CHALLENGE LEVEL -->
+          <div class="profile-section-label">Daily Challenge</div>
+          <div class="mb-4">
+            <label class="gymiq-label mb-2" style="display:block;margin-bottom:0.75rem;">Choose your daily volume target</label>
+            <div class="challenge-level-grid">
+
+              <label class="challenge-option {% if profile.challenge_level == 'beginner' %}active{% endif %}">
+                <input type="radio" name="challenge_level" value="beginner"
+                  {% if profile.challenge_level == 'beginner' %}checked{% endif %}>
+                <div class="challenge-option-inner">
+                  <div class="challenge-icon">🌱</div>
+                  <div class="challenge-name">Beginner</div>
+                  <div class="challenge-kg">1000 kg</div>
+                </div>
+              </label>
+
+              <label class="challenge-option {% if profile.challenge_level == 'intermediate' or not profile.challenge_level %}active{% endif %}">
+                <input type="radio" name="challenge_level" value="intermediate"
+                  {% if profile.challenge_level == 'intermediate' or not profile.challenge_level %}checked{% endif %}>
+                <div class="challenge-option-inner">
+                  <div class="challenge-icon">💪</div>
+                  <div class="challenge-name">Intermediate</div>
+                  <div class="challenge-kg">3000 kg</div>
+                </div>
+              </label>
+
+              <label class="challenge-option {% if profile.challenge_level == 'advanced' %}active{% endif %}">
+                <input type="radio" name="challenge_level" value="advanced"
+                  {% if profile.challenge_level == 'advanced' %}checked{% endif %}>
+                <div class="challenge-option-inner">
+                  <div class="challenge-icon">🔥</div>
+                  <div class="challenge-name">Advanced</div>
+                  <div class="challenge-kg">4000 kg</div>
+                </div>
+              </label>
+
+              <label class="challenge-option {% if profile.challenge_level == 'beast' %}active{% endif %}">
+                <input type="radio" name="challenge_level" value="beast"
+                  {% if profile.challenge_level == 'beast' %}checked{% endif %}>
+                <div class="challenge-option-inner">
+                  <div class="challenge-icon">⚡</div>
+                  <div class="challenge-name">Beast Mode</div>
+                  <div class="challenge-kg">6000 kg</div>
+                </div>
+              </label>
+
+            </div>
+          </div>
+
           <!-- BODY METRICS -->
           <div class="profile-section-label">Body Metrics</div>
           <div class="form-grid-2 mb-3">
@@ -362,6 +411,36 @@
     padding: 0.85rem 1rem;
   }
 
+  /* CHALLENGE LEVEL SELECTOR */
+  .challenge-level-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+  }
+  @media (max-width: 600px) {
+    .challenge-level-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  .challenge-option { cursor: pointer; display: block; }
+  .challenge-option input[type="radio"] { display: none; }
+  .challenge-option-inner {
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 1rem 0.5rem;
+    text-align: center;
+    transition: border-color 0.2s, background 0.2s;
+    background: rgba(255,255,255,0.03);
+  }
+  .challenge-option.active .challenge-option-inner {
+    border-color: #FF4D00;
+    background: rgba(255,77,0,0.1);
+  }
+  .challenge-option:hover .challenge-option-inner {
+    border-color: rgba(255,77,0,0.5);
+  }
+  .challenge-icon  { font-size: 1.5rem; margin-bottom: 0.3rem; }
+  .challenge-name  { font-size: 0.78rem; font-weight: 600; color: var(--light); margin-bottom: 0.2rem; }
+  .challenge-kg    { font-size: 0.72rem; color: #FF4D00; font-weight: 700; }
+
   .btn-delete-account {
     background: transparent;
     color: #ef5350;
@@ -442,6 +521,14 @@
 </style>
 
 <script>
+  // Challenge level card highlight
+  document.querySelectorAll('.challenge-option input[type="radio"]').forEach(function(radio) {
+    radio.addEventListener('change', function() {
+      document.querySelectorAll('.challenge-option').forEach(el => el.classList.remove('active'));
+      this.closest('.challenge-option').classList.add('active');
+    });
+  });
+
   // Profile picture preview
   const picInput = document.getElementById('pic-input');
   const picPlaceholder = document.getElementById('pic-placeholder');

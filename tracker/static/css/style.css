@@ -767,7 +767,7 @@ footer span { color: var(--fire); }
   background: var(--dark2);
   border: none;
   border-radius: 0;
-  padding: 3rem 3.5rem;
+  padding: 5rem 3.5rem 3rem 3.5rem;  /* ← changed top padding from 3rem to 5rem */
   box-shadow: none;
   display: flex;
   flex-direction: column;

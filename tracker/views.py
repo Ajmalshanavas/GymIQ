@@ -12,6 +12,7 @@ import razorpay
 from django.utils import timezone
 from tracker.models import Subscription
 from django.conf import settings
+from datetime import date
 
 
 # ── IST TIMEZONE HELPER ────────────────────────────────────────
@@ -209,7 +210,28 @@ def dashboard(request):
         date=today,
         defaults={'glasses': 0, 'goal': 8}
     )
+    # ── DAILY CHALLENGE ───────────────────────────────────────
+    # Today's volume
+    today_volume = Set.objects.filter(
+        exercise__workout__user=user,
+        exercise__workout__date=today,
+    ).aggregate(total=Sum(F('reps') * F('weight')))['total'] or 0
+    today_volume = round(float(today_volume), 1)
 
+    # Last 7 days average daily volume (excluding today)
+    past_7_volume = Set.objects.filter(
+        exercise__workout__user=user,
+        exercise__workout__date__gte=today - timedelta(days=7),
+        exercise__workout__date__lt=today,
+    ).aggregate(total=Sum(F('reps') * F('weight')))['total'] or 0
+    avg_daily = float(past_7_volume) / 7 if past_7_volume else 500
+
+    # Target — 10% above average, minimum 500kg
+    from users.models import Profile
+    profile_obj, _ = Profile.objects.get_or_create(user=user)
+    challenge_target = float(profile_obj.get_challenge_target())
+    challenge_percentage = min(round((today_volume / challenge_target) * 100), 100)
+    challenge_complete = today_volume >= challenge_target
     context = {
         'user': user,
         'recent_workouts': recent_workouts,
@@ -225,7 +247,10 @@ def dashboard(request):
         'last_7_volume': json.dumps(last_7_volume),
         'recent_prs': recent_prs,
         'water_log': water_log,
-        'water_percentage': water_log.get_percentage(),
+        'water_percentage': water_log.get_percentage(),'today_volume': today_volume,
+'challenge_target': challenge_target,
+'challenge_percentage': challenge_percentage,
+'challenge_complete': challenge_complete
     }
     return render(request, 'dashboard.html', context)
 
@@ -376,7 +401,7 @@ def log_workout(request):
         return redirect('dashboard')
 
     context = {
-        'today': today,
+        'today': today.strftime('%Y-%m-%d'),
         'templates': WorkoutTemplate.objects.filter(user=user),
     }
     return render(request, 'log_workout.html', context)
@@ -435,7 +460,8 @@ def log_meal(request):
         return redirect('dashboard')
 
     context = {
-        'today': today,
+        'today': today.strftime('%Y-%m-%d')
+
     }
     return render(request, 'log_meal.html', context)
 

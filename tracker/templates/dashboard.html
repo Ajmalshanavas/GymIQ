@@ -101,6 +101,53 @@
 </div>
 {% endif %}
 
+<!-- DAILY CHALLENGE -->
+<div class="dashboard-card mb-4" style="border:1px solid {% if challenge_complete %}rgba(129,199,132,0.4){% else %}rgba(255,77,0,0.2){% endif %};">
+  <div class="dashboard-card-header">
+    <h3 class="dashboard-card-title">
+      🏆 DAILY CHALLENGE
+    </h3>
+    <span style="color:var(--muted);font-size:0.82rem;">
+      {{ today }}
+    </span>
+  </div>
+
+  {% if challenge_complete %}
+    <div style="text-align:center;padding:1rem 0;">
+      <div style="font-size:2.5rem;">🎉</div>
+      <div style="font-family:'Bebas Neue';font-size:1.5rem;color:#81c784;margin:0.5rem 0;">
+        CHALLENGE COMPLETE!
+      </div>
+      <div style="color:var(--muted);font-size:0.88rem;">
+        You lifted {{ today_volume }}kg today. Crushing it! 💪
+      </div>
+    </div>
+  {% else %}
+    <div style="margin-bottom:0.8rem;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:0.4rem;">
+        <span style="color:var(--muted);font-size:0.85rem;">
+          {{ today_volume }}kg lifted today
+        </span>
+        <span style="color:var(--fire);font-size:0.85rem;font-weight:600;">
+          Target: {{ challenge_target }}kg
+        </span>
+      </div>
+      <!-- Progress bar -->
+      <div style="background:rgba(255,255,255,0.06);border-radius:999px;height:10px;overflow:hidden;">
+        <div style="height:100%;width:{{ challenge_percentage }}%;background:linear-gradient(90deg,#FF4D00,#ff7733);border-radius:999px;transition:width 0.5s ease;"></div>
+      </div>
+      <div style="color:var(--muted);font-size:0.78rem;margin-top:0.4rem;">
+        {{ challenge_percentage }}% complete —
+        {{ challenge_target|floatformat:1 }}kg target for today
+      </div>
+    </div>
+    <div style="color:var(--muted);font-size:0.82rem;">
+      <i class="bi bi-info-circle me-1"></i>
+      Lift <strong style="color:var(--light);">{{ challenge_target }}kg</strong> total volume today to complete the challenge!
+    </div>
+  {% endif %}
+</div>
+
   <!-- MINI CHARTS ROW -->
   <div class="dashboard-grid mb-4">
 
@@ -166,9 +213,9 @@
         {% for workout in recent_workouts %}
           <div class="workout-item">
             <div class="workout-item-left">
-              <div class="workout-item-icon">
-                <i class="bi bi-person-arms-up"></i>
-              </div>
+              <div class="workout-item-icon" data-workout-title="{{ workout.title }}">
+                  <i class="bi bi-person-arms-up"></i>
+           </div>
               <div>
                 <div class="workout-item-name">
                   <a href="{% url 'workout_detail' workout.id %}" style="color:var(--light);text-decoration:none;">
@@ -418,6 +465,34 @@
       }
     });
   }
+   function getWorkoutIcon(title) {
+  title = title.toLowerCase();
+  if (title.includes('chest') || title.includes('push') || title.includes('bench'))
+    return 'bi-arrow-up-circle-fill';
+  if (title.includes('back') || title.includes('pull') || title.includes('deadlift') || title.includes('row'))
+    return 'bi-arrow-down-circle-fill';
+  if (title.includes('leg') || title.includes('squat') || title.includes('glute'))
+    return 'bi-person-walking';
+  if (title.includes('shoulder'))
+    return 'bi-person-arms-up';
+  if (title.includes('bicep') || title.includes('tricep') || title.includes('arm'))
+  return 'bi-lightning-charge-fill';
+  if (title.includes('cardio') || title.includes('run') || title.includes('hiit') || title.includes('cycling'))
+    return 'bi-heart-pulse-fill';
+  if (title.includes('core') || title.includes('abs'))
+    return 'bi-bullseye';
+  if (title.includes('full') || title.includes('upper') || title.includes('lower'))
+    return 'bi-grid-fill';
+  return 'bi-dumbbell';
+}
+   // Set workout icons
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.workout-item-icon[data-workout-title]').forEach(function(el) {
+    const title = el.dataset.workoutTitle;
+    const icon = el.querySelector('i');
+    icon.className = 'bi ' + getWorkoutIcon(title);
+  });
+});
 </script>
 
 {% endblock %}

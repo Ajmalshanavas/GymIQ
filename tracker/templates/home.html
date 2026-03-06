@@ -136,7 +136,9 @@
           {% for workout in recent_workouts %}
             <div class="dash-workout-item">
               <div class="dash-workout-left">
-                <div class="dash-workout-icon"><i class="bi bi-person-arms-up"></i></div>
+                <div class="dash-workout-icon" data-workout-title="{{ workout.title }}">
+               <i class="bi bi-person-arms-up"></i>
+                          </div>
                 <div>
                   <div class="dash-workout-name">{{ workout.title }}</div>
                   <div class="dash-workout-detail">
@@ -441,5 +443,40 @@
     </div>
   </div>
 </section>
+<script>
+    <!-- add at bottom of home.html before endblock -->
+
+function getWorkoutIcon(title) {
+  title = title.trim().toLowerCase();
+  if (title.includes('bicep') || title.includes('tricep') || title.includes('arm'))
+  return 'bi-lightning-charge-fill';
+  if (title.includes('chest') || title.includes('push') || title.includes('bench'))
+    return 'bi-arrow-up-circle-fill';
+  if (title.includes('deadlift'))
+    return 'bi-arrow-bar-up';
+  if (title.includes('back') || title.includes('pull') || title.includes('row'))
+    return 'bi-arrow-down-circle-fill';
+  if (title.includes('leg') || title.includes('squat') || title.includes('glute'))
+    return 'bi-person-walking';
+  if (title.includes('shoulder'))
+    return 'bi-person-arms-up';
+  if (title.includes('cardio') || title.includes('run') || title.includes('hiit') || title.includes('cycling'))
+    return 'bi-heart-pulse-fill';
+  if (title.includes('core') || title.includes('abs'))
+    return 'bi-bullseye';
+  if (title.includes('full') || title.includes('upper') || title.includes('lower'))
+    return 'bi-grid-fill';
+  return 'bi-fire';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('[data-workout-title]').forEach(function(el) {
+    const title = el.dataset.workoutTitle;
+    const icon = el.querySelector('i');
+    if (icon) icon.className = 'bi ' + getWorkoutIcon(title);
+  });
+});
+</script>
+
 
 {% endblock %}

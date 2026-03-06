@@ -81,6 +81,7 @@ def profile(request):
         profile_obj.weight       = float(weight)   if weight else None
         profile_obj.height       = float(height)   if height else None
         profile_obj.fitness_goal = fitness_goal
+        profile_obj.challenge_level = request.POST.get('challenge_level', 'intermediate')
 
         # Handle profile picture
         if remove_picture:
