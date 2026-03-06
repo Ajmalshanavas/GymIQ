@@ -4,6 +4,7 @@ from .forms import RegisterForm
 from .models import Profile
 from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from tracker.models import Subscription
 
 
 def register(request):
@@ -36,44 +37,49 @@ def user_logout(request):
     return redirect('home')
 
 
+def get_sub_context(user):
+    """Helper — returns is_pro and sub_expires for any user"""
+    sub, _ = Subscription.objects.get_or_create(user=user)
+    return {
+        'is_pro':      sub.is_pro(),
+        'sub_expires': sub.expires_at,
+    }
+
+
 def profile(request):
     if not request.user.is_authenticated:
         return redirect('login')
 
     user = request.user
-
-    # Get or create profile safely
     profile_obj, created = Profile.objects.get_or_create(user=user)
 
     if request.method == 'POST':
-        # Update user info
-        username = request.POST.get('username', '').strip()
-        email = request.POST.get('email', '').strip()
-
-        # Update profile info
-        age = request.POST.get('age', '').strip()
-        weight = request.POST.get('weight', '').strip()
-        height = request.POST.get('height', '').strip()
-        fitness_goal = request.POST.get('fitness_goal', '').strip()
+        username       = request.POST.get('username', '').strip()
+        email          = request.POST.get('email', '').strip()
+        age            = request.POST.get('age', '').strip()
+        weight         = request.POST.get('weight', '').strip()
+        height         = request.POST.get('height', '').strip()
+        fitness_goal   = request.POST.get('fitness_goal', '').strip()
         profile_picture = request.FILES.get('profile_picture')
-        remove_picture = request.POST.get('remove_picture')
+        remove_picture  = request.POST.get('remove_picture')
 
         # Validate
         if not username or not email:
             return render(request, 'profile.html', {
                 'profile': profile_obj,
-                'error': 'Username and email are required.',
+                'error':   'Username and email are required.',
+                **get_sub_context(user),
             })
 
         # Update user
         user.username = username
-        user.email = email
+        user.email    = email
         user.save()
 
         # Update profile
-        profile_obj.age = int(age) if age else None
-        profile_obj.weight = float(weight) if weight else None
-        profile_obj.height = float(height) if height else None
+        profile_obj.age          = int(age)        if age    else None
+        profile_obj.weight       = float(weight)   if weight else None
+        profile_obj.height       = float(height)   if height else None
         profile_obj.fitness_goal = fitness_goal
 
         # Handle profile picture
@@ -91,12 +97,13 @@ def profile(request):
         return render(request, 'profile.html', {
             'profile': profile_obj,
             'success': 'Profile updated successfully!',
+            **get_sub_context(user),
         })
 
-    context = {
+    return render(request, 'profile.html', {
         'profile': profile_obj,
-    }
-    return render(request, 'profile.html', context)
+        **get_sub_context(user),
+    })
 
 
 def change_password(request):
@@ -104,33 +111,27 @@ def change_password(request):
         return redirect('login')
 
     if request.method == 'POST':
-        current_password = request.POST.get('current_password', '').strip()
-        new_password = request.POST.get('new_password', '').strip()
-        confirm_password = request.POST.get('confirm_password', '').strip()
+        current_password  = request.POST.get('current_password', '').strip()
+        new_password      = request.POST.get('new_password', '').strip()
+        confirm_password  = request.POST.get('confirm_password', '').strip()
 
-        # Validate current password
         if not request.user.check_password(current_password):
             return render(request, 'change_password.html', {
                 'error': 'Current password is incorrect.'
             })
 
-        # Validate new passwords match
         if new_password != confirm_password:
             return render(request, 'change_password.html', {
                 'error': 'New passwords do not match.'
             })
 
-        # Validate length
         if len(new_password) < 8:
             return render(request, 'change_password.html', {
                 'error': 'Password must be at least 8 characters.'
             })
 
-        # Update password
         request.user.set_password(new_password)
         request.user.save()
-
-        # Keep user logged in after password change
         update_session_auth_hash(request, request.user)
 
         return render(request, 'change_password.html', {

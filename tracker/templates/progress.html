@@ -26,21 +26,15 @@
       <div class="dashboard-card-header">
         <h3 class="dashboard-card-title">💪 STRENGTH PROGRESS</h3>
       </div>
-
-      <!-- Exercise selector -->
       <form method="GET" class="mb-3">
-        <select name="exercise"
-                class="gymiq-input"
-                onchange="this.form.submit()">
+        <select name="exercise" class="gymiq-input" onchange="this.form.submit()">
           {% for name in exercise_names %}
-            <option value="{{ name }}"
-              {% if name == selected_exercise %}selected{% endif %}>
+            <option value="{{ name }}" {% if name == selected_exercise %}selected{% endif %}>
               {{ name }}
             </option>
           {% endfor %}
         </select>
       </form>
-
       {% if strength_data != '[]' %}
         <canvas id="strengthChart" height="200"></canvas>
       {% else %}
@@ -69,7 +63,6 @@
       <div class="dashboard-card-header">
         <h3 class="dashboard-card-title">🥗 MACRO BREAKDOWN (Last 7 Days)</h3>
       </div>
-
       {% if total_protein or total_carbs or total_fat %}
         <div class="macro-chart-container">
           <canvas id="macroChart"></canvas>
@@ -96,40 +89,125 @@
       {% endif %}
     </div>
 
-    <!-- WORKOUT HEATMAP -->
+    <!-- WORKOUT HEATMAP — 30 Days -->
     <div class="dashboard-card">
       <div class="dashboard-card-header">
-        <h3 class="dashboard-card-title">📅 WORKOUT FREQUENCY (Last 30 Days)</h3>
+        <h3 class="dashboard-card-title">📅 WORKOUT HEATMAP (Last 30 Days)</h3>
       </div>
-      <div class="heatmap-grid" id="heatmap-grid"></div>
+
+      <!-- Day name labels + grid -->
+      <div class="heatmap-wrapper">
+        <!-- Day labels column -->
+        <div class="heatmap-day-labels">
+          <span>Sun</span>
+          <span>Mon</span>
+          <span>Tue</span>
+          <span>Wed</span>
+          <span>Thu</span>
+          <span>Fri</span>
+          <span>Sat</span>
+        </div>
+        <!-- Grid -->
+        <div class="heatmap-grid-30" id="heatmap-grid"></div>
+      </div>
+
+      <!-- Legend -->
       <div class="heatmap-legend mt-3">
-        <span style="color:var(--muted);font-size:0.78rem;">Less</span>
-        <div class="heatmap-cell" style="background:rgba(255,255,255,0.05);"></div>
-        <div class="heatmap-cell" style="background:rgba(255,77,0,0.3);"></div>
-        <div class="heatmap-cell" style="background:rgba(255,77,0,0.6);"></div>
-        <div class="heatmap-cell" style="background:var(--fire);"></div>
-        <span style="color:var(--muted);font-size:0.78rem;">More</span>
+        <span class="text-muted" style="font-size:0.78rem;">No workout</span>
+        <div class="heatmap-swatch" style="background:rgba(255,255,255,0.06);"></div>
+        <div class="heatmap-swatch" style="background:rgba(255,77,0,0.3);"></div>
+        <div class="heatmap-swatch" style="background:rgba(255,77,0,0.6);"></div>
+        <div class="heatmap-swatch" style="background:#FF4D00;"></div>
+        <span class="text-muted" style="font-size:0.78rem;">Workout day 🔥</span>
       </div>
+
+      <!-- Summary line -->
+      <p class="text-muted mt-2 mb-0" style="font-size:0.82rem;" id="heatmap-summary"></p>
     </div>
 
   </div>
 
 </div>
 
+<!-- HEATMAP STYLES -->
+<style>
+  .heatmap-wrapper {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .heatmap-day-labels {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.73rem;
+    color: #aaa !important;
+    padding-top: 2px;
+    min-width: 30px;
+    flex-shrink: 0;
+  }
+  .heatmap-day-labels span {
+    height: 20px;
+    line-height: 20px;
+    color: #aaa !important;
+  }
+  .heatmap-grid-30 {
+    display: grid;
+    grid-template-rows: repeat(7, 20px);
+    grid-auto-flow: column;
+    gap: 4px;
+  }
+  .heatmap-cell-30 {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    position: relative;
+    display: block;
+  }
+  .heatmap-cell-30:hover {
+    transform: scale(1.35);
+    box-shadow: 0 0 8px rgba(255,77,0,0.6);
+    z-index: 5;
+  }
+  .heatmap-legend {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .heatmap-legend span {
+    color: #aaa !important;
+    font-size: 0.78rem;
+  }
+  .heatmap-swatch {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  #heatmap-summary {
+    color: #aaa !important;
+    font-size: 0.85rem;
+  }
+</style>
+
 <script>
-  // ── CHART DEFAULTS ─────────────────────────────────────────
+  // ── CHART DEFAULTS ──────────────────────────────────────────
   Chart.defaults.color = '#888';
   Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
   Chart.defaults.font.family = 'DM Sans';
-
   const fireColor = '#FF4D00';
-  const fireGlow = '#ff6a2a';
 
-  // ── STRENGTH CHART ─────────────────────────────────────────
+  // ── STRENGTH CHART ──────────────────────────────────────────
   const strengthData = {{ strength_data|safe }};
   if (strengthData.length > 0) {
-    const strengthCtx = document.getElementById('strengthChart').getContext('2d');
-    new Chart(strengthCtx, {
+    const ctx = document.getElementById('strengthChart').getContext('2d');
+    new Chart(ctx, {
       type: 'line',
       data: {
         labels: strengthData.map(d => d.date),
@@ -154,29 +232,20 @@
             backgroundColor: '#1a1a1a',
             borderColor: 'rgba(255,77,0,0.3)',
             borderWidth: 1,
-            callbacks: {
-              label: ctx => ` ${ctx.parsed.y} kg`
-            }
+            callbacks: { label: ctx => ` ${ctx.parsed.y} kg` }
           }
         },
         scales: {
-          x: {
-            grid: { color: 'rgba(255,255,255,0.04)' },
-            ticks: { maxTicksLimit: 6 }
-          },
-          y: {
-            grid: { color: 'rgba(255,255,255,0.04)' },
-            ticks: { callback: val => val + ' kg' }
-          }
+          x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { maxTicksLimit: 6 } },
+          y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { callback: v => v + ' kg' } }
         }
       }
     });
   }
 
-  // ── WEEKLY VOLUME CHART ────────────────────────────────────
+  // ── WEEKLY VOLUME CHART ─────────────────────────────────────
   const volumeData = {{ weekly_volume|safe }};
-  const volumeCtx = document.getElementById('volumeChart').getContext('2d');
-  new Chart(volumeCtx, {
+  new Chart(document.getElementById('volumeChart').getContext('2d'), {
     type: 'bar',
     data: {
       labels: volumeData.map(d => d.week),
@@ -184,9 +253,7 @@
         label: 'Volume (kg)',
         data: volumeData.map(d => d.volume),
         backgroundColor: volumeData.map((d, i) =>
-          i === volumeData.length - 1
-            ? fireColor
-            : 'rgba(255,77,0,0.3)'
+          i === volumeData.length - 1 ? fireColor : 'rgba(255,77,0,0.3)'
         ),
         borderRadius: 4,
         borderSkipped: false,
@@ -200,29 +267,22 @@
           backgroundColor: '#1a1a1a',
           borderColor: 'rgba(255,77,0,0.3)',
           borderWidth: 1,
-          callbacks: {
-            label: ctx => ` ${ctx.parsed.y} kg`
-          }
+          callbacks: { label: ctx => ` ${ctx.parsed.y} kg` }
         }
       },
       scales: {
         x: { grid: { display: false } },
-        y: {
-          grid: { color: 'rgba(255,255,255,0.04)' },
-          ticks: { callback: val => val + ' kg' }
-        }
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { callback: v => v + ' kg' } }
       }
     }
   });
 
-  // ── MACRO PIE CHART ────────────────────────────────────────
+  // ── MACRO PIE CHART ─────────────────────────────────────────
   const protein = {{ total_protein }};
-  const carbs = {{ total_carbs }};
-  const fat = {{ total_fat }};
-
+  const carbs   = {{ total_carbs }};
+  const fat     = {{ total_fat }};
   if (protein || carbs || fat) {
-    const macroCtx = document.getElementById('macroChart').getContext('2d');
-    new Chart(macroCtx, {
+    new Chart(document.getElementById('macroChart').getContext('2d'), {
       type: 'doughnut',
       data: {
         labels: ['Protein', 'Carbs', 'Fat'],
@@ -243,34 +303,64 @@
             backgroundColor: '#1a1a1a',
             borderColor: 'rgba(255,255,255,0.1)',
             borderWidth: 1,
-            callbacks: {
-              label: ctx => ` ${ctx.parsed}g`
-            }
+            callbacks: { label: ctx => ` ${ctx.parsed}g` }
           }
         }
       }
     });
   }
 
-  // ── WORKOUT HEATMAP ────────────────────────────────────────
+  // ── 30-DAY HEATMAP ──────────────────────────────────────────
   const workoutDates = {{ workout_dates|safe }};
-  const today = new Date('{{ today }}');
-  const heatmapGrid = document.getElementById('heatmap-grid');
+  const todayStr     = '{{ today }}';
+  const today        = new Date(todayStr);
+  const grid         = document.getElementById('heatmap-grid');
 
-  for (let i = 29; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(today.getDate() - i);
-    const dateStr = date.toISOString().split('T')[0];
-    const hasWorkout = workoutDates.includes(dateStr);
+  // Build 35 cells (5 weeks × 7 days), starting from Sunday of the week 30 days ago
+  const startDate = new Date(today);
+  startDate.setDate(today.getDate() - 29);
+  // Rewind to Sunday of that week
+  startDate.setDate(startDate.getDate() - startDate.getDay());
+
+  let workoutCount = 0;
+  const totalCells = 35;
+  const cursor = new Date(startDate);
+
+  for (let i = 0; i < totalCells; i++) {
+    const dateStr  = cursor.toISOString().split('T')[0];
+    const inRange  = cursor >= new Date(today.getFullYear(), today.getMonth(), today.getDate() - 29)
+                     && cursor <= today;
+    const hasWorkout = workoutDates.includes(dateStr) && inRange;
+    const isFuture   = cursor > today;
+
+    if (hasWorkout) workoutCount++;
 
     const cell = document.createElement('div');
-    cell.className = 'heatmap-cell';
-    cell.style.background = hasWorkout
-      ? fireColor
-      : 'rgba(255,255,255,0.05)';
-    cell.title = dateStr + (hasWorkout ? ' — Workout logged ✅' : ' — No workout');
-    heatmapGrid.appendChild(cell);
+    cell.className = 'heatmap-cell-30';
+
+    if (isFuture || !inRange) {
+      cell.style.background = 'transparent';
+      cell.style.cursor = 'default';
+    } else if (hasWorkout) {
+      cell.style.background = fireColor;
+      cell.style.boxShadow  = '0 0 4px rgba(255,77,0,0.4)';
+    } else {
+      cell.style.background = 'rgba(255,255,255,0.06)';
+    }
+
+    // Tooltip
+    if (inRange && !isFuture) {
+      const label = new Date(cursor).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+      cell.title = label + (hasWorkout ? ' — Workout 🔥' : ' — Rest day');
+    }
+
+    grid.appendChild(cell);
+    cursor.setDate(cursor.getDate() + 1);
   }
+
+  // Summary
+  document.getElementById('heatmap-summary').textContent =
+    `${workoutCount} workout${workoutCount !== 1 ? 's' : ''} in the last 30 days`;
 </script>
 
 {% endblock %}
