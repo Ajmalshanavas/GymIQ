@@ -2264,3 +2264,15 @@ footer span { color: var(--fire); }
   gap: 0.8rem;
   flex-wrap: wrap;
 }
+
+/* ── SELECT DROPDOWN ── */
+select.gymiq-input option {
+  background: var(--dark3);
+  color: var(--light);
+}
+
+select.gymiq-input optgroup {
+  background: var(--dark2);
+  color: var(--fire);
+  font-weight: 600;
+}

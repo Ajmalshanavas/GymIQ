@@ -18,53 +18,86 @@
     </a>
   </div>
 
-  <!-- ERROR MESSAGE -->
   {% if error %}
     <div class="gymiq-alert mb-4">
       <i class="bi bi-exclamation-circle me-2"></i> {{ error }}
     </div>
   {% endif %}
 
-  <!-- LOAD TEMPLATE CARD -->
-  {% if templates %}
-  <div class="dashboard-card mb-4">
-    <div class="dashboard-card-header">
-      <h3 class="dashboard-card-title">📋 LOAD TEMPLATE</h3>
-      <a href="{% url 'workout_templates' %}" class="dashboard-card-link">Manage →</a>
-    </div>
-    <div style="display:flex;gap:0.8rem;flex-wrap:wrap;">
-      {% for template in templates %}
-        <button type="button"
-                class="btn-ghost"
-                onclick="loadTemplate({{ template.id }})"
-                style="font-size:0.85rem;padding:0.5rem 1.2rem;">
-          <i class="bi bi-bookmark-fill"></i> {{ template.name }}
-        </button>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
-
   <form method="POST" id="workout-form" enctype="multipart/form-data">
     {% csrf_token %}
 
-    <!-- WORKOUT DETAILS CARD -->
     <div class="dashboard-card mb-4">
       <div class="dashboard-card-header">
         <h3 class="dashboard-card-title">WORKOUT DETAILS</h3>
       </div>
 
+      <!-- QUICK PICK DROPDOWN -->
+      <div class="form-group mb-3">
+        <label class="gymiq-label">Quick Pick a Workout Type</label>
+        <select class="gymiq-input" style="cursor:pointer;"
+                onchange="if(this.value){ document.getElementById('workout-title').value=this.value; this.value=''; }">
+          <option value="">💪 Select workout name...</option>
+          <optgroup label="Push">
+            <option>Push Day A</option>
+            <option>Push Day B</option>
+            <option>Chest Day</option>
+            <option>Shoulder Day</option>
+            <option>Tricep Day</option>
+          </optgroup>
+          <optgroup label="Pull">
+            <option>Pull Day A</option>
+            <option>Pull Day B</option>
+            <option>Back Day</option>
+            <option>Bicep Day</option>
+            <option>Deadlift Day</option>
+          </optgroup>
+          <optgroup label="Legs">
+            <option>Leg Day A</option>
+            <option>Leg Day B</option>
+            <option>Squat Day</option>
+            <option>Glute Day</option>
+          </optgroup>
+          <optgroup label="Full Body">
+            <option>Full Body A</option>
+            <option>Full Body B</option>
+            <option>Upper Body</option>
+            <option>Lower Body</option>
+            <option>Core Day</option>
+          </optgroup>
+          <optgroup label="Cardio">
+            <option>Cardio Session</option>
+            <option>HIIT Session</option>
+            <option>Running</option>
+            <option>Cycling</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <!-- TITLE + DATE -->
       <div class="form-grid-2">
         <div class="form-group">
           <label class="gymiq-label">Workout Title *</label>
-          <input
-            type="text"
-            name="title"
-            id="workout-title"
-            class="gymiq-input"
-            placeholder="e.g. Chest Day, Push A, Leg Day..."
-            required
-          >
+          <div style="display:flex;gap:0.5rem;">
+            <input
+              type="text"
+              name="title"
+              id="workout-title"
+              class="gymiq-input"
+              placeholder="e.g. Chest Day, Push A, Leg Day..."
+              required
+            >
+            {% if templates %}
+            <select id="template-select" class="gymiq-input"
+                    style="width:auto;min-width:150px;cursor:pointer;"
+                    onchange="if(this.value) loadTemplate(this.value)">
+              <option value="">📋 Templates</option>
+              {% for template in templates %}
+                <option value="{{ template.id }}">{{ template.name }}</option>
+              {% endfor %}
+            </select>
+            {% endif %}
+          </div>
         </div>
         <div class="form-group">
           <label class="gymiq-label">Date *</label>
@@ -92,13 +125,7 @@
       <div class="form-group mt-3">
         <label class="gymiq-label">Workout Photo (optional)</label>
         <div class="image-upload-area" id="image-upload-area">
-          <input
-            type="file"
-            name="image"
-            id="image-input"
-            accept="image/*"
-            style="display:none;"
-          >
+          <input type="file" name="image" id="image-input" accept="image/*" style="display:none;">
           <div class="image-upload-placeholder" id="upload-placeholder"
                onclick="document.getElementById('image-input').click()">
             <i class="bi bi-camera"></i>
@@ -115,15 +142,12 @@
       </div>
     </div>
 
-    <!-- EXERCISES CONTAINER -->
     <div id="exercises-container"></div>
 
-    <!-- ADD EXERCISE BUTTON -->
     <button type="button" id="add-exercise-btn" class="btn-ghost w-100 mb-4">
       <i class="bi bi-plus-circle"></i> Add Exercise
     </button>
 
-    <!-- SAVE BUTTON -->
     <div class="text-center mb-5">
       <button type="submit" class="btn-primary-custom" style="font-size:1rem; padding:1rem 3rem;">
         <i class="bi bi-check-circle me-2"></i> Save Workout
@@ -136,7 +160,6 @@
 <script>
   let exerciseCounter = 0;
 
-  // ─── ADD EXERCISE ───────────────────────────────────────────
   function addExercise() {
     const container = document.getElementById('exercises-container');
     const exIndex = exerciseCounter;
@@ -148,9 +171,7 @@
 
     card.innerHTML = `
       <div class="dashboard-card-header">
-        <h3 class="dashboard-card-title">
-          EXERCISE <span class="ex-num"></span>
-        </h3>
+        <h3 class="dashboard-card-title">EXERCISE <span class="ex-num"></span></h3>
         <button type="button" class="remove-exercise-btn" title="Remove exercise">
           <i class="bi bi-trash"></i>
         </button>
@@ -168,10 +189,7 @@
         </div>
       </div>
       <div class="sets-table-header">
-        <span>SET</span>
-        <span>REPS</span>
-        <span>WEIGHT (kg)</span>
-        <span></span>
+        <span>SET</span><span>REPS</span><span>WEIGHT (kg)</span><span></span>
       </div>
       <div class="sets-container"></div>
       <button type="button" class="add-set-btn btn-ghost mt-2">
@@ -192,11 +210,9 @@
 
     renumberExercises();
     addSet(card.querySelector('.sets-container'), exIndex);
-
     return card;
   }
 
-  // ─── ADD SET ────────────────────────────────────────────────
   function addSet(setsContainer, exIndex) {
     const setIndex = setsContainer.children.length;
     const row = document.createElement('div');
@@ -219,7 +235,6 @@
     return row;
   }
 
-  // ─── RENUMBER ────────────────────────────────────────────────
   function renumberExercises() {
     document.querySelectorAll('.exercise-block').forEach(function (block, i) {
       block.querySelector('.ex-num').textContent = i + 1;
@@ -232,44 +247,43 @@
     });
   }
 
-  // ─── LOAD TEMPLATE ───────────────────────────────────────────
   function loadTemplate(templateId) {
-  // Fetch FIRST, then clear and fill — no confirm needed
-  fetch(`/templates/load/${templateId}/`)
-    .then(res => res.json())
-    .then(data => {
-      // Set title
-      document.getElementById('workout-title').value = data.name;
+    fetch(`/templates/load/${templateId}/`)
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('workout-title').value = data.name;
+        document.getElementById('exercises-container').innerHTML = '';
+        exerciseCounter = 0;
 
-      // Clear exercises
-      document.getElementById('exercises-container').innerHTML = '';
-      exerciseCounter = 0;
+        data.exercises.forEach(ex => {
+          const card = addExercise();
+          const exIndex = card.dataset.exerciseIndex;
+          card.querySelector(`[name="exercise_${exIndex}_name"]`).value = ex.name;
+          card.querySelector(`[name="exercise_${exIndex}_notes"]`).value = ex.notes || '';
 
-      // Add each exercise from template
-      data.exercises.forEach(ex => {
-        const card = addExercise();
-        const exIndex = card.dataset.exerciseIndex;
-
-        card.querySelector(`[name="exercise_${exIndex}_name"]`).value = ex.name;
-        card.querySelector(`[name="exercise_${exIndex}_notes"]`).value = ex.notes || '';
-
-        const setsContainer = card.querySelector('.sets-container');
-        setsContainer.innerHTML = '';
-
-        ex.sets.forEach(s => {
-          const row = addSet(setsContainer, exIndex);
-          const inputs = row.querySelectorAll('input[type="number"]');
-          inputs[0].value = s.reps;
-          inputs[1].value = s.weight;
+          const setsContainer = card.querySelector('.sets-container');
+          setsContainer.innerHTML = '';
+          ex.sets.forEach(s => {
+            const row = addSet(setsContainer, exIndex);
+            const inputs = row.querySelectorAll('input[type="number"]');
+            inputs[0].value = s.reps;
+            inputs[1].value = s.weight;
+          });
         });
-      });
-    })
-    .catch(() => alert('Failed to load template. Please try again.'));
-}
 
-  // ─── INIT ────────────────────────────────────────────────────
+        const sel = document.getElementById('template-select');
+        if (sel) sel.value = '';
+      })
+      .catch(() => alert('Failed to load template. Please try again.'));
+  }
+
   document.getElementById('add-exercise-btn').addEventListener('click', addExercise);
   addExercise();
+
+  // Auto-load template from URL param
+  const urlParams = new URLSearchParams(window.location.search);
+  const templateId = urlParams.get('template');
+  if (templateId) loadTemplate(templateId);
 
   // Image upload preview
   const imageInput = document.getElementById('image-input');
@@ -297,11 +311,6 @@
     uploadPlaceholder.style.display = 'flex';
     imagePreviewContainer.style.display = 'none';
   });
-    const urlParams = new URLSearchParams(window.location.search);
-const templateId = urlParams.get('template');
-if (templateId) {
-  loadTemplate(templateId);
-}
 </script>
 
 {% endblock %}

@@ -353,9 +353,10 @@ def log_workout(request):
         return redirect('dashboard')
 
     context = {
-        'today': today,'templates': WorkoutTemplate.objects.filter(user=user),
+        'today': today,
+        'templates': WorkoutTemplate.objects.filter(user=user),
     }
-    return render(request, 'log_workout.html')
+    return render(request, 'log_workout.html', context)
 
 
 # ── DELETE WORKOUT ─────────────────────────────────────────────
