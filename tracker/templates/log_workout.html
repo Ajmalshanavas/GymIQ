@@ -1,7 +1,9 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Log Workout{% endblock %}
+{% block title %}Log Workout
+
+{% endblock %}
 
 {% block content %}
 
@@ -188,14 +190,39 @@
                  placeholder="e.g. Pause reps, close grip...">
         </div>
       </div>
-      <div class="sets-table-header">
+      <div class="cardio-toggle-row mb-2">
+        <label class="cardio-toggle-label">
+          <input type="checkbox" class="cardio-toggle-cb" name="exercise_${exIndex}_is_cardio">
+          <span class="cardio-toggle-text">🏃 Cardio exercise (shows timer instead of weight)</span>
+        </label>
+      </div>
+      <div class="sets-table-header sets-header-strength">
         <span>SET</span><span>REPS</span><span>WEIGHT (kg)</span><span></span>
+      </div>
+      <div class="sets-table-header sets-header-cardio" style="display:none;">
+        <span>SET</span><span>REPS</span><span>DURATION</span><span></span>
       </div>
       <div class="sets-container"></div>
       <button type="button" class="add-set-btn btn-ghost mt-2">
         <i class="bi bi-plus"></i> Add Set
       </button>
     `;
+
+    // Cardio toggle
+    card.querySelector('.cardio-toggle-cb').addEventListener('change', function() {
+      const isCardio = this.checked;
+      const strengthHeader = card.querySelector('.sets-header-strength');
+      const cardioHeader   = card.querySelector('.sets-header-cardio');
+      strengthHeader.style.display = isCardio ? 'none' : '';
+      cardioHeader.style.display   = isCardio ? '' : 'none';
+      // Rebuild existing sets
+      const setsContainer = card.querySelector('.sets-container');
+      const setCount = setsContainer.children.length;
+      setsContainer.innerHTML = '';
+      for (let i = 0; i < setCount; i++) {
+        addSet(setsContainer, card.dataset.exerciseIndex, isCardio);
+      }
+    });
 
     container.appendChild(card);
 
@@ -205,29 +232,36 @@
     });
 
     card.querySelector('.add-set-btn').addEventListener('click', function () {
-      addSet(card.querySelector('.sets-container'), exIndex);
+      addSet(card.querySelector('.sets-container'), exIndex, false);
     });
 
     renumberExercises();
-    addSet(card.querySelector('.sets-container'), exIndex);
+    addSet(card.querySelector('.sets-container'), exIndex, false);
     return card;
   }
 
-  function addSet(setsContainer, exIndex) {
+  function addSet(setsContainer, exIndex, isCardio) {
     const setIndex = setsContainer.children.length;
     const row = document.createElement('div');
     row.className = 'set-row';
+
+    const thirdCol = isCardio ? `
+      <input type="text" name="exercise_${exIndex}_set_${setIndex}_weight"
+             class="gymiq-input set-input" placeholder="e.g. 30 min, 5 km...">` : `
+      <input type="number" name="exercise_${exIndex}_set_${setIndex}_weight"
+             class="gymiq-input set-input" placeholder="kg" step="0.5" min="0">`;
+
     row.innerHTML = `
       <span class="set-num-label">${setIndex + 1}</span>
       <input type="number" name="exercise_${exIndex}_set_${setIndex}_reps"
-             class="gymiq-input set-input" placeholder="Reps" min="1" required>
-      <input type="number" name="exercise_${exIndex}_set_${setIndex}_weight"
-             class="gymiq-input set-input" placeholder="kg" step="0.5" min="0" required>
+             class="gymiq-input set-input" placeholder="Reps" min="1">
+      ${thirdCol}
       <button type="button" class="remove-set-btn" title="Remove set">
         <i class="bi bi-x-circle"></i>
       </button>
     `;
     setsContainer.appendChild(row);
+
     row.querySelector('.remove-set-btn').addEventListener('click', function () {
       row.remove();
       renumberSets(setsContainer);
@@ -312,5 +346,7 @@
     imagePreviewContainer.style.display = 'none';
   });
 </script>
+
+
 
 {% endblock %}

@@ -50,7 +50,7 @@
       <div class="dashboard-card-header">
         <h3 class="dashboard-card-title">🏋️ WEEKLY VOLUME</h3>
       </div>
-      <canvas id="volumeChart" height="200"></canvas>
+      <canvas id="volumeChart" height="201"></canvas>
     </div>
 
   </div>
@@ -129,6 +129,75 @@
 
 </div>
 
+  <!-- ROW 3 — CARDIO STATS -->
+  <div class="dashboard-grid mb-4">
+
+    <!-- CARDIO SESSIONS CHART -->
+    <div class="dashboard-card">
+      <div class="dashboard-card-header">
+        <h3 class="dashboard-card-title">🏃 WEEKLY CARDIO SESSIONS</h3>
+      </div>
+      {% if total_cardio_sessions > 0 %}
+        <canvas id="cardioChart" height="200"></canvas>
+        <div class="mt-3" style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:0.75rem;color:var(--muted);letter-spacing:0.05em;">LAST 30 DAYS</div>
+            <div style="font-size:1.4rem;font-family:'Bebas Neue';color:#4fc3f7;">{{ total_cardio_sessions }} sessions</div>
+          </div>
+          {% if top_cardio_name %}
+          <div>
+            <div style="font-size:0.75rem;color:var(--muted);letter-spacing:0.05em;">FAVOURITE</div>
+            <div style="font-size:1.4rem;font-family:'Bebas Neue';color:#4fc3f7;">{{ top_cardio_name }}</div>
+          </div>
+          {% endif %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <i class="bi bi-person-walking"></i>
+          <p>No cardio logged yet. Add a cardio exercise to a workout!</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- CARDIO TIPS -->
+    <div class="dashboard-card">
+      <div class="dashboard-card-header">
+        <h3 class="dashboard-card-title">💡 CARDIO GUIDE</h3>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <div class="cardio-tip-row">
+          <div class="cardio-tip-icon">🔥</div>
+          <div>
+            <div class="cardio-tip-title">HIIT</div>
+            <div class="cardio-tip-desc">High intensity intervals — max fat burn in less time. 20–30 min.</div>
+          </div>
+        </div>
+        <div class="cardio-tip-row">
+          <div class="cardio-tip-icon">🚶</div>
+          <div>
+            <div class="cardio-tip-title">LISS</div>
+            <div class="cardio-tip-desc">Low intensity steady state — great for recovery days. 40–60 min.</div>
+          </div>
+        </div>
+        <div class="cardio-tip-row">
+          <div class="cardio-tip-icon">❤️</div>
+          <div>
+            <div class="cardio-tip-title">Zone 2</div>
+            <div class="cardio-tip-desc">Conversational pace cardio — builds aerobic base and heart health.</div>
+          </div>
+        </div>
+        <div class="cardio-tip-row">
+          <div class="cardio-tip-icon">🎯</div>
+          <div>
+            <div class="cardio-tip-title">Recommended</div>
+            <div class="cardio-tip-desc">Aim for 3–5 cardio sessions per week alongside strength training.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
 <!-- HEATMAP STYLES -->
 <style>
   .heatmap-wrapper {
@@ -194,6 +263,7 @@
     color: #aaa !important;
     font-size: 0.85rem;
   }
+
 </style>
 
 <script>
@@ -356,6 +426,47 @@
 
     grid.appendChild(cell);
     cursor.setDate(cursor.getDate() + 1);
+  }
+
+  // ── CARDIO CHART ───────────────────────────────────────────
+  const cardioData = {{ cardio_weekly|safe }};
+  const cardioCanvas = document.getElementById('cardioChart');
+  if (cardioCanvas) {
+    new Chart(cardioCanvas.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: cardioData.map(d => d.week),
+        datasets: [{
+          label: 'Sessions',
+          data: cardioData.map(d => d.sessions),
+          backgroundColor: cardioData.map((d, i) =>
+            i === cardioData.length - 1 ? '#4fc3f7' : 'rgba(79,195,247,0.3)'
+          ),
+          borderRadius: 4,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1a1a1a',
+            borderColor: 'rgba(79,195,247,0.3)',
+            borderWidth: 1,
+            callbacks: { label: ctx => ` ${ctx.parsed.y} session${ctx.parsed.y !== 1 ? 's' : ''}` }
+          }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: {
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            ticks: { stepSize: 1, callback: v => v },
+            beginAtZero: true,
+          }
+        }
+      }
+    });
   }
 
   // Summary

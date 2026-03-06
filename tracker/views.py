@@ -794,6 +794,40 @@ def progress(request):
             'volume': round(float(vol), 1),
         })
 
+    # ── CARDIO STATS (last 8 weeks) ────────────────────────────
+    # Cardio exercises are identified by is_cardio checkbox name pattern
+    # We count workouts per week that contain at least one cardio exercise
+    cardio_weekly = []
+    for i in range(7, -1, -1):
+        week_start = today - timedelta(days=today.weekday() + 7 * i)
+        week_end   = week_start + timedelta(days=6)
+        # Count workouts with cardio exercises (exercises whose name contains cardio marker
+        # OR where sets have non-numeric weight values like "30 min")
+        cardio_count = Workout.objects.filter(
+            user=user,
+            date__range=[week_start, week_end],
+            exercises__name__iregex=r'(cardio|run|cycling|hiit|swim|walk|jog|treadmill|elliptical|rowing|jump|skip)',
+        ).distinct().count()
+        cardio_weekly.append({
+            'week': week_start.strftime('%b %d'),
+            'sessions': cardio_count,
+        })
+
+    # Total cardio sessions last 30 days
+    total_cardio_sessions = Workout.objects.filter(
+        user=user,
+        date__range=[today - timedelta(days=29), today],
+        exercises__name__iregex=r'(cardio|run|cycling|hiit|swim|walk|jog|treadmill|elliptical|rowing|jump|skip)',
+    ).distinct().count()
+
+    # Most frequent cardio exercise
+    from django.db.models import Count
+    top_cardio = Exercise.objects.filter(
+        workout__user=user,
+        name__iregex=r'(cardio|run|cycling|hiit|swim|walk|jog|treadmill|elliptical|rowing|jump|skip)',
+    ).values('name').annotate(count=Count('id')).order_by('-count').first()
+    top_cardio_name = top_cardio['name'] if top_cardio else None
+
     context = {
         'exercise_names': exercise_names,
         'selected_exercise': selected_exercise,
@@ -808,6 +842,9 @@ def progress(request):
         'dash_carbs': dash_carbs,
         'dash_fat': dash_fat,
         'last_7_volume': json.dumps(last_7_volume),
+        'cardio_weekly': json.dumps(cardio_weekly),
+        'total_cardio_sessions': total_cardio_sessions,
+        'top_cardio_name': top_cardio_name,
     }
     return render(request, 'progress.html', context)
 
@@ -986,3 +1023,23 @@ def payment_success(request):
 # ── PAYMENT FAILED ─────────────────────────────────────────────
 def payment_failed(request):
     return render(request, 'payment_failed.html')
+
+def features(request):
+    compare_rows = [
+        {'feature': 'Log Workouts',          'free': True},
+        {'feature': 'View Dashboard',         'free': True},
+        {'feature': 'Workout History',        'free': True},
+        {'feature': 'Daily Challenge',        'free': False},
+        {'feature': 'Log Meals & Macros',     'free': False},
+        {'feature': 'Water Tracker',          'free': False},
+        {'feature': 'Personal Records',       'free': False},
+        {'feature': 'Workout Templates',      'free': False},
+        {'feature': 'Strength Progress Chart','free': False},
+        {'feature': 'Weekly Volume Chart',    'free': False},
+        {'feature': 'Macro Breakdown Chart',  'free': False},
+        {'feature': 'Workout Heatmap',        'free': False},
+    ]
+    return render(request, 'features.html', {
+        'compare_rows': compare_rows,
+        'user': request.user,
+    })

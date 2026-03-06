@@ -24,6 +24,7 @@ path('templates/delete/<int:template_id>/', views.delete_template, name='delete_
 path('templates/load/<int:template_id>/', views.load_template, name='load_template'),
 path('pricing/',          views.pricing,          name='pricing'),
  path('payment-success/',  views.payment_success,  name='payment_success'),
- path('payment-failed/',   views.payment_failed,   name='payment_failed')
+ path('payment-failed/',   views.payment_failed,   name='payment_failed'),
+path('features/', views.features, name='features'),
 
 ]

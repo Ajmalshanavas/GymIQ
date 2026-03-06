@@ -2276,3 +2276,274 @@ select.gymiq-input optgroup {
   color: var(--fire);
   font-weight: 600;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   FEATURES PAGE
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── PAGE ───────────────────────────────────────────── */
+.features-page {
+  padding-bottom: 4rem;
+}
+
+/* ── HERO ───────────────────────────────────────────── */
+.features-hero {
+  position: relative;
+  padding: 8rem 2rem 5rem;
+  text-align: center;
+  overflow: hidden;
+}
+.hero-bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,77,0,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,77,0,0.06) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+.features-hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 120px;
+  background: linear-gradient(transparent, var(--dark2));
+  pointer-events: none;
+}
+.features-hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 720px;
+  margin: 0 auto;
+}
+.hero-eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.25em;
+  color: var(--fire);
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+.features-hero-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3rem, 8vw, 6rem);
+  line-height: 1;
+  color: var(--light);
+  margin-bottom: 1.5rem;
+}
+.features-hero-title span { color: var(--fire); }
+.features-hero-sub {
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.8;
+  margin-bottom: 2rem;
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.hero-cta-row {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ── SECTIONS ───────────────────────────────────────── */
+.features-section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+}
+.features-section-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  color: var(--fire);
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+.features-section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  color: var(--light);
+  margin-bottom: 2.5rem;
+}
+
+/* ── FEATURE GRID ───────────────────────────────────── */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.25rem;
+}
+.feature-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 1.75rem 1.5rem;
+  position: relative;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.feature-card:hover {
+  border-color: rgba(255,255,255,0.18);
+  transform: translateY(-3px);
+}
+.feature-card--pro {
+  border-color: rgba(255,77,0,0.2);
+}
+.feature-card--pro:hover {
+  border-color: rgba(255,77,0,0.5);
+}
+.feature-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+.feature-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.2rem;
+  color: var(--light);
+  letter-spacing: 0.05em;
+  margin-bottom: 0.6rem;
+}
+.feature-desc {
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
+.feature-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+.feature-badge.free {
+  background: rgba(255,255,255,0.08);
+  color: #aaa;
+}
+.feature-badge.pro {
+  background: rgba(255,77,0,0.15);
+  color: var(--fire);
+  border: 1px solid rgba(255,77,0,0.3);
+}
+
+/* ── COMPARE TABLE ──────────────────────────────────── */
+.compare-table-wrapper {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.compare-table thead tr {
+  background: rgba(255,255,255,0.03);
+}
+.compare-table th,
+.compare-table td {
+  padding: 1rem 1.25rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.compare-feature-col { text-align: left; width: 55%; }
+.compare-plan-col    { width: 22.5%; }
+.compare-plan-header { padding: 0.5rem 0; }
+.compare-plan-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem;
+  color: var(--light);
+  letter-spacing: 0.05em;
+}
+.pro-header .compare-plan-name { color: var(--fire); }
+.compare-plan-price {
+  font-size: 0.82rem;
+  color: #777;
+  margin-top: 0.2rem;
+}
+.compare-plan-price span { font-size: 0.75rem; }
+.compare-feature-name {
+  text-align: left;
+  color: #ccc;
+  font-size: 0.9rem;
+}
+.compare-check { font-size: 1rem; }
+.compare-lock  { opacity: 0.35; }
+.pro-col       { background: rgba(255,77,0,0.04); }
+.compare-table tbody tr:hover td {
+  background: rgba(255,255,255,0.02);
+}
+.compare-table tbody tr:last-child td { border-bottom: none; }
+
+/* ── CTA BANNER ─────────────────────────────────────── */
+.features-cta-banner {
+  margin: 2rem auto 0;
+  max-width: 1100px;
+  padding: 0 2rem;
+}
+.cta-banner-inner {
+  background: linear-gradient(135deg, rgba(255,77,0,0.15), rgba(255,77,0,0.05));
+  border: 1px solid rgba(255,77,0,0.3);
+  border-radius: 16px;
+  padding: 3.5rem 2rem;
+  text-align: center;
+}
+.cta-banner-fire  { font-size: 2.5rem; margin-bottom: 1rem; }
+.cta-banner-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  color: var(--light);
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.05em;
+}
+.cta-banner-sub {
+  color: var(--muted);
+  font-size: 1rem;
+  margin-bottom: 2rem;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CARDIO TIMER (log_workout)
+   ═══════════════════════════════════════════════════════════ */
+
+.cardio-toggle-row {
+  padding: 0.5rem 0;
+}
+.cardio-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.85rem;
+  transition: color 0.2s;
+}
+.cardio-toggle-label:hover { color: var(--light); }
+.cardio-toggle-cb {
+  width: 16px;
+  height: 16px;
+  accent-color: #FF4D00;
+  cursor: pointer;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CARDIO STATS (progress page)
+   ═══════════════════════════════════════════════════════════ */
+
+.cardio-tip-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(79,195,247,0.04);
+  border: 1px solid rgba(79,195,247,0.1);
+  border-radius: 6px;
+}
+.cardio-tip-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+.cardio-tip-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.95rem;
+  color: #4fc3f7;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.2rem;
+}
+.cardio-tip-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }

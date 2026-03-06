@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Features — GymIQ{% endblock %}
+
+{% block content %}
+
+<div class="features-page">
+
+  <!-- HERO -->
+  <section class="features-hero">
+    <div class="hero-bg-grid"></div>
+    <div class="features-hero-inner">
+      <div class="hero-eyebrow">EVERYTHING YOU NEED</div>
+      <h1 class="features-hero-title">
+        TRAIN SMARTER.<br><span>NOT JUST HARDER.</span>
+      </h1>
+      <p class="features-hero-sub">
+        GymIQ gives you the tools serious athletes use — workout tracking, nutrition logging,
+        personal records, progress analytics, and more. All in one dark, fast, distraction-free app.
+      </p>
+      <div class="hero-cta-row">
+        <a href="{% url 'register' %}" class="btn-primary-custom">Start Free Today</a>
+        <a href="{% url 'pricing' %}" class="btn-ghost">See Pricing →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURE GRID -->
+  <section class="features-section">
+    <div class="features-section-label">CORE FEATURES</div>
+    <h2 class="features-section-title">Built for every athlete</h2>
+
+    <div class="features-grid">
+
+      <div class="feature-card">
+        <div class="feature-icon">🏋️</div>
+        <h3 class="feature-title">Workout Logging</h3>
+        <p class="feature-desc">Log every exercise, set, rep and weight. Attach notes and photos to your workouts. Build a full history of your training.</p>
+        <div class="feature-badge free">FREE</div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3 class="feature-title">Dashboard</h3>
+        <p class="feature-desc">Your fitness command center. See streaks, recent workouts, daily challenges, macros and water intake at a glance.</p>
+        <div class="feature-badge free">FREE</div>
+      </div>
+
+      <div class="feature-card feature-card--pro">
+        <div class="feature-icon">🥗</div>
+        <h3 class="feature-title">Nutrition Logging</h3>
+        <p class="feature-desc">Track every meal with full macros — calories, protein, carbs and fat. See your 7-day macro breakdown in beautiful charts.</p>
+        <div class="feature-badge pro">PRO</div>
+      </div>
+
+      <div class="feature-card feature-card--pro">
+        <div class="feature-icon">💧</div>
+        <h3 class="feature-title">Water Tracker</h3>
+        <p class="feature-desc">Hit your daily hydration goal. Set a custom target, add and remove glasses, and see your progress as a visual bar.</p>
+        <div class="feature-badge pro">PRO</div>
+      </div>
+
+      <div class="feature-card feature-card--pro">
+        <div class="feature-icon">🏆</div>
+        <h3 class="feature-title">Personal Records</h3>
+        <p class="feature-desc">Automatically track your all-time best lifts. Celebrate every PR and see which exercises you're strongest at.</p>
+        <div class="feature-badge pro">PRO</div>
+      </div>
+
+      <div class="feature-card feature-card--pro">
+        <div class="feature-icon">📋</div>
+        <h3 class="feature-title">Workout Templates</h3>
+        <p class="feature-desc">Save your favourite workout structures as templates. Load them in one tap and never start from scratch again.</p>
+        <div class="feature-badge pro">PRO</div>
+      </div>
+
+      <div class="feature-card feature-card--pro">
+        <div class="feature-icon">📈</div>
+        <h3 class="feature-title">Progress Charts</h3>
+        <p class="feature-desc">Visualise strength gains over time per exercise. Track weekly volume, macro breakdowns and your 30-day workout heatmap.</p>
+        <div class="feature-badge pro">PRO</div>
+      </div>
+
+      <div class="feature-card feature-card--pro">
+        <div class="feature-icon">🔥</div>
+        <h3 class="feature-title">Daily Challenge</h3>
+        <p class="feature-desc">Set your own daily volume target — Beginner, Intermediate, Advanced or Beast Mode. Beat it every day.</p>
+        <div class="feature-badge pro">PRO</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- COMPARISON TABLE -->
+  <section class="features-section">
+    <div class="features-section-label">PLAN COMPARISON</div>
+    <h2 class="features-section-title">Free vs Pro</h2>
+
+    <div class="compare-table-wrapper">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th class="compare-feature-col">Feature</th>
+            <th class="compare-plan-col">
+              <div class="compare-plan-header free-header">
+                <div class="compare-plan-name">Free</div>
+                <div class="compare-plan-price">₹0 <span>/ forever</span></div>
+              </div>
+            </th>
+            <th class="compare-plan-col">
+              <div class="compare-plan-header pro-header">
+                <div class="compare-plan-name">Pro ⚡</div>
+                <div class="compare-plan-price">₹199 <span>/ month</span></div>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in compare_rows %}
+          <tr>
+            <td class="compare-feature-name">{{ row.feature }}</td>
+            <td class="compare-check">{% if row.free %}✅{% else %}<span class="compare-lock">🔒</span>{% endif %}</td>
+            <td class="compare-check pro-col">✅</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- CTA BANNER -->
+  <section class="features-cta-banner">
+    <div class="cta-banner-inner">
+      <div class="cta-banner-fire">🔥</div>
+      <h2 class="cta-banner-title">READY TO GO PRO?</h2>
+      <p class="cta-banner-sub">Unlock every feature for just ₹199/month. Cancel anytime.</p>
+      <div class="hero-cta-row">
+        {% if user.is_authenticated %}
+          <a href="{% url 'pricing' %}" class="btn-primary-custom">Upgrade Now — ₹199/mo</a>
+        {% else %}
+          <a href="{% url 'register' %}" class="btn-primary-custom">Start Free</a>
+          <a href="{% url 'pricing' %}" class="btn-ghost">See Pricing →</a>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+</div>
+
+
+{% endblock %}
