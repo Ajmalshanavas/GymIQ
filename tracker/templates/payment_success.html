@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5 text-center">
+  <div class="mb-4" style="font-size:5rem;">🎉</div>
+  <h1 class="fw-bold" style="color:#FF4D00;">You're now GymIQ Pro!</h1>
+  <p class="text-muted fs-5 mt-2">Your subscription is active. All features are unlocked.</p>
+  <a href="{% url 'dashboard' %}" class="btn btn-lg mt-4 fw-bold text-white"
+     style="background:#FF4D00;">Go to Dashboard</a>
+</div>
+{% endblock %}

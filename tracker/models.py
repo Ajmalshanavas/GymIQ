@@ -1,5 +1,6 @@
 from django.db import models
 from users.models import User
+from django.utils import timezone
 
 
 class Workout(models.Model):
@@ -235,3 +236,31 @@ class TemplateSet(models.Model):
 
     def __str__(self):
         return f"Set {self.set_number} → {self.reps} reps @ {self.weight}kg"
+
+class Subscription(models.Model):
+    PLAN_FREE = 'free'
+    PLAN_PRO  = 'pro'
+    PLAN_CHOICES = [
+        (PLAN_FREE, 'Free'),
+        (PLAN_PRO,  'Pro'),
+    ]
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='subscription'
+    )
+    plan               = models.CharField(max_length=10, choices=PLAN_CHOICES, default=PLAN_FREE)
+    razorpay_order_id  = models.CharField(max_length=100, blank=True)
+    razorpay_payment_id= models.CharField(max_length=100, blank=True)
+    started_at         = models.DateTimeField(null=True, blank=True)
+    expires_at         = models.DateTimeField(null=True, blank=True)
+
+    def is_pro(self):
+        if self.plan == self.PLAN_PRO:
+            if self.expires_at is None or self.expires_at > timezone.now():
+                return True
+        return False
+
+    def __str__(self):
+        return f"{self.user.email} — {self.plan}"

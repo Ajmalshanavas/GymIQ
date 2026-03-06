@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container py-5">
+
+  <!-- HEADER -->
+  <div class="text-center mb-5">
+    <h1 class="fw-bold" style="color:#FF4D00;">Upgrade to GymIQ Pro</h1>
+    <p class="text-muted fs-5">Unlock the full power of your fitness journey</p>
+  </div>
+
+  <!-- PLAN CARDS -->
+  <div class="row justify-content-center g-4">
+
+    <!-- FREE PLAN -->
+    <div class="col-md-5">
+      <div class="card h-100 bg-dark text-white border-secondary">
+        <div class="card-body p-4">
+          <h3 class="fw-bold">Free</h3>
+          <p class="text-muted">Get started with the basics</p>
+          <h2 class="fw-bold mb-4">₹0 <small class="fs-6 text-muted">/ forever</small></h2>
+          <ul class="list-unstyled">
+            <li class="mb-2">✅ Log Workouts</li>
+            <li class="mb-2">✅ View Dashboard</li>
+            <li class="mb-2">✅ View All Pages</li>
+            <li class="mb-2 text-muted">🔒 Log Meals</li>
+            <li class="mb-2 text-muted">🔒 Water Tracker</li>
+            <li class="mb-2 text-muted">🔒 Personal Records</li>
+            <li class="mb-2 text-muted">🔒 Workout Templates</li>
+            <li class="mb-2 text-muted">🔒 Progress Charts</li>
+          </ul>
+          <button class="btn btn-outline-secondary w-100 mt-3" disabled>Current Free Plan</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRO PLAN -->
+    <div class="col-md-5">
+      <div class="card h-100 text-white border-0"
+           style="background: linear-gradient(135deg,#FF4D00,#cc3d00);
+                  box-shadow: 0 0 30px rgba(255,77,0,0.4);">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-center">
+            <h3 class="fw-bold mb-0">Pro</h3>
+            <span class="badge bg-white text-dark fw-bold">RECOMMENDED</span>
+          </div>
+          <p class="mt-2" style="opacity:.85;">Everything to crush your goals</p>
+          <h2 class="fw-bold mb-4">₹199 <small class="fs-6" style="opacity:.8;">/ month</small></h2>
+          <ul class="list-unstyled">
+            <li class="mb-2">✅ Everything in Free</li>
+            <li class="mb-2">✅ Log Meals & Macros</li>
+            <li class="mb-2">✅ Water Tracker</li>
+            <li class="mb-2">✅ Personal Records</li>
+            <li class="mb-2">✅ Workout Templates</li>
+            <li class="mb-2">✅ Full Progress Charts</li>
+            <li class="mb-2">✅ Workout Heatmap</li>
+          </ul>
+
+          {% if is_pro %}
+            <button class="btn btn-light w-100 fw-bold mt-3" disabled>✅ You're Pro!</button>
+          {% else %}
+            <!-- RAZORPAY PAYMENT FORM -->
+            <form action="{% url 'payment_success' %}" method="POST" id="payment-form">
+              {% csrf_token %}
+              <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+              <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+              <button type="button" id="pay-btn"
+                      class="btn btn-light w-100 fw-bold mt-3"
+                      onclick="openRazorpay()">
+                🔥 Pay Now — ₹199/mo
+              </button>
+            </form>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="text-center text-muted mt-4 small">
+    🔒 All features are visible — subscribe to unlock full access.
+  </p>
+
+</div>
+
+{% if not is_pro %}
+<!-- RAZORPAY CHECKOUT JS -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  function openRazorpay() {
+    var options = {
+      "key": "{{ razorpay_key }}",
+      "amount": "{{ payy_str }}",
+      "currency": "INR",
+      "order_id": "{{ order_id }}",
+      "name": "GymIQ",
+      "description": "GymIQ Pro — Monthly Subscription",
+      "prefill": {
+        "name": "{{ user.username }}",
+        "email": "{{ user.email }}"
+      },
+      "theme": {
+        "color": "#FF4D00"
+      },
+      "handler": function (response) {
+        // On success — fill hidden inputs and submit form
+        document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+        document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+        document.getElementById('payment-form').submit();
+      },
+      "modal": {
+        "ondismiss": function () {
+          window.location.href = "{% url 'payment_failed' %}";
+        }
+      }
+    };
+    var rzp = new Razorpay(options);
+    rzp.open();
+  }
+</script>
+{% endif %}
+
+{% endblock %}

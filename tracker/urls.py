@@ -21,5 +21,9 @@ path('water/set-goal/', views.water_set_goal, name='water_set_goal'),
 path('templates/', views.workout_templates, name='workout_templates'),
 path('templates/save/<int:workout_id>/', views.save_template, name='save_template'),
 path('templates/delete/<int:template_id>/', views.delete_template, name='delete_template'),
-path('templates/load/<int:template_id>/', views.load_template, name='load_template')
+path('templates/load/<int:template_id>/', views.load_template, name='load_template'),
+path('pricing/',          views.pricing,          name='pricing'),
+ path('payment-success/',  views.payment_success,  name='payment_success'),
+ path('payment-failed/',   views.payment_failed,   name='payment_failed')
+
 ]

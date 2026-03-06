@@ -8,12 +8,32 @@ import zoneinfo
 import json
 from django.db.models import Sum, Max, F
 from datetime import timedelta
+import razorpay
+from django.utils import timezone
+from tracker.models import Subscription
+from django.conf import settings
 
 
 # ── IST TIMEZONE HELPER ────────────────────────────────────────
 def get_ist_today():
     ist = zoneinfo.ZoneInfo('Asia/Kolkata')
     return timezone.now().astimezone(ist).date()
+
+# ── PRO GUARD DECORATOR ────────────────────────────────────────
+from functools import wraps
+
+def pro_required(view_func):
+    """Redirect to pricing if user is not Pro"""
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('login')
+        sub, _ = Subscription.objects.get_or_create(user=request.user)
+        if not sub.is_pro():
+            return redirect('pricing')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
 
 
 # ── PR HELPER ──────────────────────────────────────────────────
@@ -211,6 +231,7 @@ def dashboard(request):
 
 
 # ── WATER INTAKE VIEWS ─────────────────────────────────────────
+@pro_required
 def water_add(request):
     """Add one glass of water — AJAX or redirect"""
     if not request.user.is_authenticated:
@@ -236,6 +257,7 @@ def water_add(request):
     return redirect('dashboard')
 
 
+@pro_required
 def water_remove(request):
     """Remove one glass of water"""
     if not request.user.is_authenticated:
@@ -262,6 +284,7 @@ def water_remove(request):
     return redirect('dashboard')
 
 
+@pro_required
 def water_set_goal(request):
     """Update daily water goal"""
     if not request.user.is_authenticated:
@@ -376,6 +399,8 @@ def delete_workout(request, workout_id):
 
 
 # ── LOG MEAL ───────────────────────────────────────────────────
+
+@pro_required
 def log_meal(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -416,6 +441,7 @@ def log_meal(request):
 
 
 # ── DELETE MEAL ────────────────────────────────────────────────
+@pro_required
 def delete_meal(request, meal_id):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -580,6 +606,7 @@ def edit_workout(request, workout_id):
 
 
 # ── EDIT MEAL ──────────────────────────────────────────────────
+@pro_required
 def edit_meal(request, meal_id):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -657,6 +684,7 @@ def contact(request):
 
 
 # ── PROGRESS ───────────────────────────────────────────────────
+@pro_required
 def progress(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -759,6 +787,7 @@ def progress(request):
 
 
 # ── PERSONAL RECORDS ───────────────────────────────────────────
+@pro_required
 def personal_records(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -775,6 +804,7 @@ def personal_records(request):
 
 from tracker.models import Workout, NutritionLog, Exercise, Set, ContactMessage, PersonalRecord, WaterIntake, WorkoutTemplate, TemplateExercise, TemplateSet
 
+@pro_required
 def workout_templates(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -789,6 +819,7 @@ def workout_templates(request):
     return render(request, 'workout_templates.html', context)
 
 
+@pro_required
 def save_template(request, workout_id):
     """Save an existing workout as a template"""
     if not request.user.is_authenticated:
@@ -829,6 +860,7 @@ def save_template(request, workout_id):
     return redirect('workout_detail', workout_id=workout_id)
 
 
+@pro_required
 def delete_template(request, template_id):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -842,6 +874,7 @@ def delete_template(request, template_id):
     return redirect('workout_templates')
 
 
+@pro_required
 def load_template(request, template_id):
     """Return template data as JSON for pre-filling log workout form"""
     if not request.user.is_authenticated:
@@ -869,3 +902,61 @@ def load_template(request, template_id):
         data['exercises'].append(ex_data)
 
     return JsonResponse(data)
+
+RAZORPAY_KEY_ID     = 'rzp_test_0ib0jPwwZ7I1lT'
+RAZORPAY_KEY_SECRET = 'VjHNO5zKeKxz8PYe7VnzwxMR'
+
+
+
+# ── PRICING PAGE ───────────────────────────────────────────────
+def pricing(request):
+    is_pro = False
+    sub = None
+    amount = 19900   # ₹199 in paise
+    payy_str = str(amount)
+    order_id = ''
+
+    if request.user.is_authenticated:
+        sub, _ = Subscription.objects.get_or_create(user=request.user)
+        is_pro = sub.is_pro()
+
+        if not is_pro:
+            # Create Razorpay order
+            client = razorpay.Client(auth=('rzp_test_0ib0jPwwZ7I1lT', 'VjHNO5zKeKxz8PYe7VnzwxMR'))
+            payment = client.order.create({'amount': amount, 'currency': 'INR'})
+            order_id = payment['id']
+            sub.razorpay_order_id = order_id
+            sub.save()
+
+    return render(request, 'pricing.html', {
+        'is_pro':      is_pro,
+        'payy_str':    payy_str,
+        'order_id':    order_id,
+        'razorpay_key': RAZORPAY_KEY_ID,
+        'user':        request.user,
+    })
+
+
+# ── PAYMENT SUCCESS ────────────────────────────────────────────
+def payment_success(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    if request.method == 'POST':
+        payment_id = request.POST.get('razorpay_payment_id', '')
+        order_id   = request.POST.get('razorpay_order_id', '')
+
+        sub, _ = Subscription.objects.get_or_create(user=request.user)
+        sub.plan                = Subscription.PLAN_PRO
+        sub.razorpay_payment_id = payment_id
+        sub.razorpay_order_id   = order_id
+        sub.started_at          = timezone.now()
+        sub.expires_at          = timezone.now() + timedelta(days=30)
+        sub.save()
+
+    return render(request, 'payment_success.html')
+
+
+# ── PAYMENT FAILED ─────────────────────────────────────────────
+def payment_failed(request):
+    return render(request, 'payment_failed.html')
