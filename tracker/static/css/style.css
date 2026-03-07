@@ -2547,3 +2547,54 @@ select.gymiq-input optgroup {
   margin-bottom: 0.2rem;
 }
 .cardio-tip-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+
+/* ═══════════════════════════════════════════════════════════
+   CHANGE PASSWORD PAGE
+   ═══════════════════════════════════════════════════════════ */
+
+.pw-wrapper {
+  position: relative;
+}
+.toggle-pw {
+  position: absolute;
+  right: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0;
+  transition: color 0.2s;
+}
+.toggle-pw:hover { color: var(--light); }
+.cp-error {
+  display: block;
+  font-size: 0.78rem;
+  color: #ef5350;
+  margin-top: 0.3rem;
+  min-height: 1rem;
+}
+.gymiq-input.input-error { border-color: #ef5350 !important; }
+.gymiq-input.input-ok    { border-color: #81c784 !important; }
+.cp-requirements {
+  display: none;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.6rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 4px;
+}
+.cp-requirements.visible { display: flex; }
+.cp-req {
+  font-size: 0.8rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.cp-req.met { color: #81c784; }
+.cp-req.met i::before { content: "\F26A"; }
