@@ -1,115 +1,182 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<div class="container py-5">
+<div class="dashboard-wrapper">
 
   <!-- HEADER -->
-  <div class="text-center mb-5">
-    <h1 class="fw-bold" style="color:#FF4D00;">Upgrade to GymIQ Pro</h1>
-    <p class="text-muted fs-5">Unlock the full power of your fitness journey</p>
+  <div class="text-center mb-5" style="padding-top:5rem;">
+    <h1 class="dashboard-title">UPGRADE TO <span>GYMIQ PRO</span></h1>
+    <p class="dashboard-sub">Unlock the full power of your fitness journey</p>
   </div>
 
   <!-- PLAN CARDS -->
-  <div class="row justify-content-center g-4">
+  <div class="pricing-grid">
 
     <!-- FREE PLAN -->
-    <div class="col-md-5">
-      <div class="card h-100 bg-dark text-white border-secondary">
-        <div class="card-body p-4">
-          <h3 class="fw-bold">Free</h3>
-          <p class="text-muted">Get started with the basics</p>
-          <h2 class="fw-bold mb-4">₹0 <small class="fs-6 text-muted">/ forever</small></h2>
-          <ul class="list-unstyled">
-            <li class="mb-2">✅ Log Workouts</li>
-            <li class="mb-2">✅ View Dashboard</li>
-            <li class="mb-2">✅ View All Pages</li>
-            <li class="mb-2 text-muted">🔒 Log Meals</li>
-            <li class="mb-2 text-muted">🔒 Water Tracker</li>
-            <li class="mb-2 text-muted">🔒 Personal Records</li>
-            <li class="mb-2 text-muted">🔒 Workout Templates</li>
-            <li class="mb-2 text-muted">🔒 Progress Charts</li>
-          </ul>
-          <button class="btn btn-outline-secondary w-100 mt-3" disabled>Current Free Plan</button>
-        </div>
-      </div>
+    <div class="dashboard-card pricing-card">
+      <div class="pricing-plan-label">FREE</div>
+      <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1.2rem;">Get started with the basics</p>
+      <div class="pricing-price">₹0 <span>/ forever</span></div>
+
+      <ul class="pricing-features">
+        <li class="feat-yes">✅ Log Workouts</li>
+        <li class="feat-yes">✅ View Dashboard</li>
+        <li class="feat-yes">✅ Workout History</li>
+        <li class="feat-no">🔒 Log Meals & Macros</li>
+        <li class="feat-no">🔒 Water Tracker</li>
+        <li class="feat-no">🔒 Personal Records</li>
+        <li class="feat-no">🔒 Workout Templates</li>
+        <li class="feat-no">🔒 Progress Charts</li>
+        <li class="feat-no">🔒 Workout Heatmap</li>
+      </ul>
+
+      <button class="btn-ghost w-100 mt-3" disabled
+              style="opacity:0.4;cursor:not-allowed;">
+        Current Free Plan
+      </button>
     </div>
 
     <!-- PRO PLAN -->
-    <div class="col-md-5">
-      <div class="card h-100 text-white border-0"
-           style="background: linear-gradient(135deg,#FF4D00,#cc3d00);
-                  box-shadow: 0 0 30px rgba(255,77,0,0.4);">
-        <div class="card-body p-4">
-          <div class="d-flex justify-content-between align-items-center">
-            <h3 class="fw-bold mb-0">Pro</h3>
-            <span class="badge bg-white text-dark fw-bold">RECOMMENDED</span>
-          </div>
-          <p class="mt-2" style="opacity:.85;">Everything to crush your goals</p>
-          <h2 class="fw-bold mb-4">₹199 <small class="fs-6" style="opacity:.8;">/ month</small></h2>
-          <ul class="list-unstyled">
-            <li class="mb-2">✅ Everything in Free</li>
-            <li class="mb-2">✅ Log Meals & Macros</li>
-            <li class="mb-2">✅ Water Tracker</li>
-            <li class="mb-2">✅ Personal Records</li>
-            <li class="mb-2">✅ Workout Templates</li>
-            <li class="mb-2">✅ Full Progress Charts</li>
-            <li class="mb-2">✅ Workout Heatmap</li>
-          </ul>
+    <div class="dashboard-card pricing-card pricing-card-pro">
+      <div class="pricing-recommended-badge">⭐ RECOMMENDED</div>
+      <div class="pricing-plan-label" style="color:#FF4D00;">PRO</div>
+      <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1.2rem;">Everything to crush your goals</p>
+      <div class="pricing-price" style="color:#FF4D00;">₹199 <span>/ month</span></div>
 
-          {% if is_pro %}
-            <button class="btn btn-light w-100 fw-bold mt-3" disabled>✅ You're Pro!</button>
-          {% else %}
-            <!-- RAZORPAY PAYMENT FORM -->
-            <form action="{% url 'payment_success' %}" method="POST" id="payment-form">
-              {% csrf_token %}
-              <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
-              <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
-              <button type="button" id="pay-btn"
-                      class="btn btn-light w-100 fw-bold mt-3"
-                      onclick="openRazorpay()">
-                🔥 Pay Now — ₹199/mo
-              </button>
-            </form>
-          {% endif %}
+      <ul class="pricing-features">
+        <li class="feat-yes">✅ Everything in Free</li>
+        <li class="feat-yes">✅ Log Meals & Macros</li>
+        <li class="feat-yes">✅ Water Tracker</li>
+        <li class="feat-yes">✅ Personal Records</li>
+        <li class="feat-yes">✅ Workout Templates</li>
+        <li class="feat-yes">✅ Full Progress Charts</li>
+        <li class="feat-yes">✅ Workout Heatmap</li>
+        <li class="feat-yes">✅ Daily Challenge</li>
+        <li class="feat-yes">✅ Cardio Tracking</li>
+      </ul>
 
-        </div>
-      </div>
+      {% if is_pro %}
+        <button class="btn-primary-custom w-100 mt-3" disabled
+                style="opacity:0.7;cursor:not-allowed;">
+          ✅ You're Already Pro!
+        </button>
+      {% else %}
+        <form action="{% url 'payment_success' %}" method="POST" id="payment-form">
+          {% csrf_token %}
+          <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+          <input type="hidden" name="razorpay_order_id"   id="razorpay_order_id">
+          <button type="button" id="pay-btn"
+                  class="btn-primary-custom w-100 mt-3"
+                  style="font-size:1rem;padding:1rem;"
+                  onclick="openRazorpay()">
+            ⚡ Pay Now — ₹199/mo
+          </button>
+        </form>
+      {% endif %}
+
     </div>
   </div>
 
-  <p class="text-center text-muted mt-4 small">
-    🔒 All features are visible — subscribe to unlock full access.
+  <p class="text-center mt-4" style="color:var(--muted);font-size:0.85rem;">
+    🔒 Secure payment via Razorpay &nbsp;·&nbsp; Cancel anytime
   </p>
 
 </div>
 
+<style>
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  @media (max-width: 768px) {
+    .pricing-grid { grid-template-columns: 1fr; }
+  }
+  .pricing-card {
+    height: auto !important;
+    overflow: visible !important;
+    padding: 2rem;
+    position: relative;
+  }
+  .pricing-card-pro {
+    border-color: rgba(255,77,0,0.4) !important;
+    box-shadow: 0 0 30px rgba(255,77,0,0.15);
+  }
+  .pricing-recommended-badge {
+    position: absolute;
+    top: -1px;
+    right: 1.5rem;
+    background: #FF4D00;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 4px 12px;
+    border-radius: 0 0 6px 6px;
+  }
+  .pricing-plan-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--light);
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+  }
+  .pricing-price {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    color: var(--light);
+    margin-bottom: 1.5rem;
+    line-height: 1;
+  }
+  .pricing-price span {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    color: var(--muted);
+    font-weight: 400;
+  }
+  .pricing-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .pricing-features li {
+    font-size: 0.88rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .feat-yes { color: var(--light); }
+  .feat-no  { color: var(--muted); }
+</style>
+
 {% if not is_pro %}
-<!-- RAZORPAY CHECKOUT JS -->
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
   function openRazorpay() {
     var options = {
-      "key": "{{ razorpay_key }}",
-      "amount": "{{ payy_str }}",
-      "currency": "INR",
-      "order_id": "{{ order_id }}",
-      "name": "GymIQ",
+      "key":         "{{ razorpay_key }}",
+      "amount":      "{{ payy_str }}",
+      "currency":    "INR",
+      "order_id":    "{{ order_id }}",
+      "name":        "GymIQ",
       "description": "GymIQ Pro — Monthly Subscription",
       "prefill": {
-        "name": "{{ user.username }}",
+        "name":  "{{ user.username }}",
         "email": "{{ user.email }}"
       },
-      "theme": {
-        "color": "#FF4D00"
-      },
-      "handler": function (response) {
-        // On success — fill hidden inputs and submit form
+      "theme": { "color": "#FF4D00" },
+      "handler": function(response) {
         document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
-        document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+        document.getElementById('razorpay_order_id').value   = response.razorpay_order_id;
         document.getElementById('payment-form').submit();
       },
       "modal": {
-        "ondismiss": function () {
+        "ondismiss": function() {
           window.location.href = "{% url 'payment_failed' %}";
         }
       }
